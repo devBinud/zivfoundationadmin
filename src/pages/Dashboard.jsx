@@ -17,8 +17,8 @@ const Dashboard = () => {
     pendingRequestsCount: 0,
     approvedRequestsCount: 0,
     totalRequestsCount: 0,
-    pendingDisputesCount: 0,
-    resolvedDisputesCount: 0
+    pendingFlaggedReviewsCount: 0,
+    resolvedFlaggedReviewsCount: 0
   });
   
   const [recentRequests, setRecentRequests] = useState([]);
@@ -51,8 +51,8 @@ const Dashboard = () => {
         pendingRequestsCount: pendingReqs,
         approvedRequestsCount: approvedReqs,
         totalRequestsCount: requests.length,
-        pendingDisputesCount: pendingDisps,
-        resolvedDisputesCount: resolvedDisps
+        pendingFlaggedReviewsCount: pendingDisps,
+        resolvedFlaggedReviewsCount: resolvedDisps
       });
 
       // Show top 5 recent requests

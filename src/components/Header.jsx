@@ -31,8 +31,8 @@ const Header = ({ onMenuToggle, theme, setTheme }) => {
         return 'Partner Records Management';
       case '/requests':
         return 'Medical Blood Requests Moderation';
-      case '/disputes':
-        return 'Flagged Dispute Moderation';
+      case '/flagged-reviews':
+        return 'Flagged Reviews Board';
       default:
         return 'Ziv Foundation Admin';
     }

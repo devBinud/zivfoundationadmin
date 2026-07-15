@@ -45,7 +45,7 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
       label: 'Directory Records',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
         </svg>
       ),
       items: [
@@ -60,6 +60,17 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
           )
         },
         {
+          path: '/partners/add',
+          key: 'partners-add',
+          label: 'Add New Organization',
+          icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          )
+        },
+        {
           path: '/partners',
           key: 'partners-view',
           label: 'View All Organizations',
@@ -70,17 +81,6 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
               <path d="M5 21V10.85" />
               <path d="M19 21V10.85" />
               <path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
-            </svg>
-          )
-        },
-        {
-          path: '/partners/add',
-          key: 'partners-add',
-          label: 'Add New Organization',
-          icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           )
         }
@@ -110,8 +110,8 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
           )
         },
         {
-          path: '/disputes',
-          label: 'Dispute Board',
+          path: '/flagged-reviews',
+          label: 'Flagged Reviews',
           icon: (
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
@@ -263,12 +263,12 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
                     <span className="nav-item-icon">
                       {theme === 'light' ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="4"/>
-                          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                          <circle cx="12" cy="12" r="4" />
+                          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
                         </svg>
                       ) : (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
                         </svg>
                       )}
                     </span>
@@ -282,14 +282,14 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
                 </button>
                 <div className={`nav-dropdown-children-container ${themeDropdownOpen ? 'open' : ''}`}>
                   <div className="nav-dropdown-children-inner">
-                    <button 
+                    <button
                       className={`nav-sub-item-btn ${theme === 'light' ? 'active' : ''}`}
                       onClick={() => setTheme('light')}
                     >
                       <span className="nav-sub-item-dot">•</span>
                       <span className="nav-sub-item-label">Light Theme</span>
                     </button>
-                    <button 
+                    <button
                       className={`nav-sub-item-btn ${theme === 'dark' ? 'active' : ''}`}
                       onClick={() => setTheme('dark')}
                     >

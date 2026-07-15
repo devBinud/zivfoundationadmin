@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
+
 // Components
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -12,10 +13,11 @@ import Header from './components/Header';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import UserDirectory from './pages/UserDirectory';
+import UserDetail from './pages/UserDetail';
 import PartnerDirectory from './pages/PartnerDirectory';
 import AddOrganization from './pages/AddOrganization';
 import RequestModeration from './pages/RequestModeration';
-import DisputeModeration from './pages/DisputeModeration';
+import FlaggedReviews from './pages/FlaggedReviews';
 import OnBehalfCreation from './pages/OnBehalfCreation';
 import CertificateManagement from './pages/CertificateManagement';
 import ViewCertificate from './pages/ViewCertificate';
@@ -84,10 +86,11 @@ function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="users" element={<UserDirectory />} />
+          <Route path="users/:id" element={<UserDetail />} />
           <Route path="partners" element={<PartnerDirectory />} />
           <Route path="partners/add" element={<AddOrganization />} />
           <Route path="requests" element={<RequestModeration />} />
-          <Route path="disputes" element={<DisputeModeration />} />
+          <Route path="flagged-reviews" element={<FlaggedReviews />} />
           <Route path="on-behalf" element={<OnBehalfCreation />} />
           <Route path="certificates" element={<CertificateManagement />} />
           <Route path="certificates/view/:id" element={<ViewCertificate />} />

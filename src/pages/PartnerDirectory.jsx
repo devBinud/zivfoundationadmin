@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import Swal from 'sweetalert2';
 import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import indiaFlag from '../assets/icons/india.png';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
@@ -41,7 +42,13 @@ const PartnerDirectory = () => {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      const sanitized = value.replace(/[^0-9]/g, '');
+      setFormData({ ...formData, phone: sanitized });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const startCreate = () => {
@@ -49,11 +56,12 @@ const PartnerDirectory = () => {
   };
 
   const startEdit = (partner) => {
+    const cleanedPhone = partner.phone ? partner.phone.replace(/[\s\-()]/g, '').replace(/^(\+91|91)/, '') : '';
     setFormData({
       name: partner.name,
       type: partner.type,
       address: partner.address,
-      phone: partner.phone,
+      phone: cleanedPhone,
       email: partner.email,
       contactPerson: partner.contactPerson
     });
@@ -119,9 +127,36 @@ const PartnerDirectory = () => {
       return;
     }
 
+    // Validate email address format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      Swal.fire({
+        title: 'Invalid Email Address',
+        text: 'Please enter a valid email address.',
+        icon: 'warning',
+        confirmButtonColor: 'var(--primary)'
+      });
+      return;
+    }
+
+    // Validate phone number: exactly 10 digits
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      Swal.fire({
+        title: 'Invalid Phone Number',
+        text: 'Please enter a valid 10-digit phone number.',
+        icon: 'warning',
+        confirmButtonColor: 'var(--primary)'
+      });
+      return;
+    }
+
     try {
       if (formMode === 'create') {
-        await api.partners.create(formData);
+        await api.partners.create({
+          ...formData,
+          phone: `+91 ${formData.phone}`
+        });
         Swal.fire({
           title: 'Registered!',
           text: 'New partner facility has been registered successfully.',
@@ -129,7 +164,10 @@ const PartnerDirectory = () => {
           confirmButtonColor: 'var(--primary)'
         });
       } else {
-        await api.partners.update(activePartnerId, formData);
+        await api.partners.update(activePartnerId, {
+          ...formData,
+          phone: `+91 ${formData.phone}`
+        });
         Swal.fire({
           title: 'Updated!',
           text: 'Partner facility details updated successfully.',
@@ -341,15 +379,25 @@ const PartnerDirectory = () => {
             <div className="form-row">
               <div className="form-group flex-1">
                 <label className="form-label">Primary Telephone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  className="form-control"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="e.g. +91 94350 99999"
-                  required
-                />
+                <div className="phone-input-group">
+                  <div className="phone-prefix-box">
+                    <img src={indiaFlag} alt="IN" style={{ width: '18px', height: '12px', borderRadius: '2px', objectFit: 'cover' }} />
+                    <span>+91</span>
+                  </div>
+                  <input
+                    type="tel"
+                    name="phone"
+                    className="phone-input-field"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="94350 99999"
+                    maxLength={10}
+                    required
+                  />
+                </div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                  Must be exactly 10 digits.
+                </span>
               </div>
               <div className="form-group flex-1">
                 <label className="form-label">Email Address</label>
@@ -466,6 +514,71 @@ const PartnerDirectory = () => {
           padding: 0.55rem 1.25rem;
           font-size: 0.85rem;
           border-radius: 6px;
+        }
+
+        .phone-input-group {
+          display: flex;
+          align-items: stretch;
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          background: rgba(0, 0, 0, 0.3);
+          transition: all 0.2s ease;
+          width: 100%;
+          overflow: hidden;
+        }
+
+        html.light-theme .phone-input-group {
+          background: #ffffff;
+          border-color: var(--border);
+        }
+
+        .phone-input-group:focus-within {
+          outline: none;
+          border-color: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.7) !important;
+          box-shadow: 0 0 6px hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.25) !important;
+          background: rgba(0, 0, 0, 0.4);
+        }
+
+        html.light-theme .phone-input-group:focus-within {
+          background: #ffffff;
+          border-color: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.65) !important;
+          box-shadow: 0 0 6px hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.18) !important;
+        }
+
+        .phone-prefix-box {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.05);
+          border-right: 1px solid var(--border);
+          padding: 0 0.75rem;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          gap: 8px;
+          user-select: none;
+        }
+
+        html.light-theme .phone-prefix-box {
+          background: rgba(0, 0, 0, 0.02);
+          border-right-color: var(--border);
+        }
+
+        .phone-input-field {
+          border: none !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          padding: 0.55rem 0.85rem;
+          color: var(--text-primary);
+          font-family: var(--font-sans);
+          font-size: 0.85rem;
+          width: 100%;
+          outline: none !important;
+        }
+
+        .phone-input-field:invalid {
+          box-shadow: none !important;
+          outline: none !important;
         }
 
         .spinner-medium {

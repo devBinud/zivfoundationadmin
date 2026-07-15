@@ -1,13 +1,14 @@
 /* UserDirectory - User profiles listing and moderation panel */
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import Swal from 'sweetalert2';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 const UserDirectory = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -186,6 +187,13 @@ const UserDirectory = () => {
                     </td>
                     <td>
                       <span className="user-name">{u.name}</span>
+                      {u.documentName && (
+                        <div style={{ marginTop: '4px' }}>
+                          <span className="badge badge-info" style={{ textTransform: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '0.15rem 0.4rem' }}>
+                            📄 {u.documentName}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td>
                       <div className="contact-details">
@@ -208,12 +216,27 @@ const UserDirectory = () => {
                       </span>
                     </td>
                     <td>
-                      <button 
-                        className={`btn btn-sm ${u.status === 'Active' ? 'btn-danger-outline' : 'btn-success-outline'}`}
-                        onClick={() => handleToggleStatus(u.id, u.status)}
-                      >
-                        {u.status === 'Active' ? 'Suspend' : 'Activate'}
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {/* Details Button */}
+                        <button
+                          className="btn btn-sm btn-details-outline"
+                          onClick={() => navigate(`/users/${u.id}`)}
+                          title="View Full Details"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                          Details
+                        </button>
+                        {/* Suspend / Activate Button */}
+                        <button
+                          className={`btn btn-sm ${u.status === 'Active' ? 'btn-danger-outline' : 'btn-success-outline'}`}
+                          onClick={() => handleToggleStatus(u.id, u.status)}
+                        >
+                          {u.status === 'Active' ? 'Suspend' : 'Activate'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -329,6 +352,30 @@ const UserDirectory = () => {
         }
         .btn-success-outline:hover {
           background: var(--success);
+          color: white;
+        }
+
+        .btn-details-outline {
+          background: rgba(99, 102, 241, 0.06);
+          border: 1px solid rgba(99, 102, 241, 0.25);
+          color: #818cf8;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          white-space: nowrap;
+        }
+        .btn-details-outline:hover {
+          background: #6366f1;
+          border-color: #6366f1;
+          color: white;
+        }
+        html.light-theme .btn-details-outline {
+          background: rgba(99, 102, 241, 0.06);
+          border-color: rgba(99, 102, 241, 0.3);
+          color: #4f46e5;
+        }
+        html.light-theme .btn-details-outline:hover {
+          background: #4f46e5;
           color: white;
         }
 

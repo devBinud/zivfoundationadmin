@@ -1,4 +1,4 @@
-/* DisputeModeration - Comment flagging and reviews disputes panel */
+/* FlaggedReviews - Comment flagging and reviews moderation panel */
 
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
@@ -7,30 +7,30 @@ import { FaArrowRight } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
-const DisputeModeration = () => {
-  const [disputes, setDisputes] = useState([]);
+const FlaggedReviews = () => {
+  const [flaggedReviews, setFlaggedReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchDisputes = async () => {
+  const fetchFlaggedReviews = async () => {
     try {
       setLoading(true);
       const data = await api.disputes.list();
-      setDisputes(data);
+      setFlaggedReviews(data);
       setLoading(false);
     } catch (err) {
-      setError('Could not load dispute boards.');
+      setError('Could not load flagged reviews.');
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDisputes();
+    fetchFlaggedReviews();
   }, []);
 
-  const handleResolveDispute = async (disputeId) => {
+  const handleResolveReview = async (reviewId) => {
     const result = await Swal.fire({
-      title: 'Resolve Dispute?',
+      title: 'Resolve Flagged Review?',
       text: 'Are you sure you want to resolve and dismiss flags for this comment?',
       icon: 'question',
       showCancelButton: true,
@@ -42,18 +42,18 @@ const DisputeModeration = () => {
     if (result.isConfirmed) {
       setError(null);
       try {
-        await api.disputes.resolve(disputeId);
-        await fetchDisputes();
+        await api.disputes.resolve(reviewId);
+        await fetchFlaggedReviews();
         Swal.fire({
           title: 'Resolved!',
-          text: 'Dispute has been resolved and settled.',
+          text: 'Flags have been resolved and settled.',
           icon: 'success',
           confirmButtonColor: 'var(--primary)'
         });
       } catch (err) {
         Swal.fire({
           title: 'Error!',
-          text: `Failed to resolve dispute: ${err.message}`,
+          text: `Failed to resolve flags: ${err.message}`,
           icon: 'error',
           confirmButtonColor: 'var(--primary)'
         });
@@ -62,26 +62,26 @@ const DisputeModeration = () => {
   };
 
   return (
-    <div className="disputes-view">
+    <div className="flagged-reviews-view">
       <div className="glass-card controls-card mb-4 flex-between">
         <div>
-          <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Flagged Disputes Board</h2>
+          <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Flagged Reviews Board</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.2rem' }}>
-            Moderate community reviews, ratings disputes, or abusive/commercial solicitation comments.
+            Moderate community reviews, flag comments, or resolve abusive/commercial solicitation reports.
           </p>
         </div>
         <span className="badge badge-secondary">
-          Awaiting Action: {disputes.filter(d => d.status === 'Pending').length}
+          Awaiting Action: {flaggedReviews.filter(r => r.status === 'Pending').length}
         </span>
       </div>
 
       {error && <div className="alert-box alert-danger mb-4">{error}</div>}
 
-      {/* Disputes list */}
+      {/* Flagged reviews list */}
       {loading ? (
-        <div className="disputes-stack">
+        <div className="flagged-reviews-stack">
           {Array(4).fill(0).map((_, i) => (
-            <div key={i} className="glass-card dispute-item-card mb-4">
+            <div key={i} className="glass-card flagged-review-card mb-4">
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <Skeleton width={90} height={22} borderRadius={20} />
@@ -98,57 +98,57 @@ const DisputeModeration = () => {
             </div>
           ))}
         </div>
-      ) : disputes.length === 0 ? (
+      ) : flaggedReviews.length === 0 ? (
         <div className="glass-card text-center py-6" style={{ color: 'var(--text-muted)' }}>
-          No disputes or flagged contents registered. All clean!
+          No flagged reviews registered. All clean!
         </div>
       ) : (
-        <div className="disputes-stack">
-          {disputes.map(d => (
-            <div key={d.id} className="glass-card dispute-item-card mb-4 animate-fade">
-              <div className="dispute-item-header flex-between mb-4">
-                <div className="dispute-origin">
+        <div className="flagged-reviews-stack">
+          {flaggedReviews.map(r => (
+            <div key={r.id} className="glass-card flagged-review-card mb-4 animate-fade">
+              <div className="flagged-review-header flex-between mb-4">
+                <div className="flagged-review-origin">
                   <span className="badge badge-rejected" style={{ fontSize: '0.7rem' }}>
-                    {d.reason}
+                    {r.reason}
                   </span>
-                  <span className="dispute-date-text ml-4">
-                    Reported on: {d.dateReported}
+                  <span className="flagged-review-date-text ml-4">
+                    Reported on: {r.dateReported}
                   </span>
                 </div>
-                <div className="dispute-state">
-                  <span className={`badge ${d.status === 'Pending' ? 'badge-pending' : 'badge-approved'}`}>
-                    {d.status}
+                <div className="flagged-review-state">
+                  <span className={`badge ${r.status === 'Pending' ? 'badge-pending' : 'badge-approved'}`}>
+                    {r.status}
                   </span>
                 </div>
               </div>
 
-              <div className="dispute-participants mb-4">
+              <div className="flagged-review-participants mb-4">
                 <div className="participant">
                   <span className="participant-role">Reporter:</span>
-                  <span className="participant-name">{d.reporterName}</span>
+                  <span className="participant-name">{r.reporterName}</span>
                 </div>
                 <div className="participant-separator" style={{ display: 'flex', alignItems: 'center' }}>
                   <FaArrowRight style={{ color: 'var(--text-muted)' }} />
                 </div>
                 <div className="participant">
                   <span className="participant-role text-red">Offender:</span>
-                  <span className="participant-name">{d.offenderName}</span>
+                  <span className="participant-name">{r.offenderName}</span>
                 </div>
               </div>
 
-              <div className="dispute-comment-bubble">
+              <div className="flagged-review-comment-bubble">
                 <p className="comment-bubble-label">Flagged Comment Context:</p>
                 <blockquote className="comment-quote">
-                  "{d.commentText}"
+                  "{r.commentText}"
                 </blockquote>
               </div>
 
-              <div className="dispute-actions mt-4 flex-between">
-                <span className="dispute-id-tag">Case ID: {d.id}</span>
-                {d.status === 'Pending' ? (
+              <div className="flagged-review-actions mt-4 flex-between">
+                <span className="flagged-review-id-tag">Report ID: {r.id}</span>
+                {r.status === 'Pending' ? (
                   <button 
                     className="btn btn-sm btn-success"
-                    onClick={() => handleResolveDispute(d.id)}
+                    onClick={() => handleResolveReview(r.id)}
                   >
                     Resolve & Dismiss Flags
                   </button>
@@ -164,17 +164,17 @@ const DisputeModeration = () => {
       )}
 
       <style>{`
-        .disputes-stack {
+        .flagged-reviews-stack {
           display: flex;
           flex-direction: column;
         }
 
-        .dispute-item-card {
+        .flagged-review-card {
           padding: 1.5rem 2rem;
           text-align: left;
         }
 
-        .dispute-date-text {
+        .flagged-review-date-text {
           font-size: 0.8rem;
           color: var(--text-muted);
         }
@@ -183,7 +183,7 @@ const DisputeModeration = () => {
           margin-left: 1rem;
         }
 
-        .dispute-participants {
+        .flagged-review-participants {
           display: flex;
           align-items: center;
           gap: 1.5rem;
@@ -216,7 +216,7 @@ const DisputeModeration = () => {
           color: var(--text-muted);
         }
 
-        .dispute-comment-bubble {
+        .flagged-review-comment-bubble {
           background: rgba(239, 68, 68, 0.03);
           border-left: 4px solid var(--danger);
           padding: 1rem 1.25rem;
@@ -238,7 +238,7 @@ const DisputeModeration = () => {
           font-size: 0.95rem;
         }
 
-        .dispute-id-tag {
+        .flagged-review-id-tag {
           font-family: var(--mono);
           font-size: 0.75rem;
           color: var(--text-muted);
@@ -258,4 +258,4 @@ const DisputeModeration = () => {
   );
 };
 
-export default DisputeModeration;
+export default FlaggedReviews;
