@@ -87,6 +87,9 @@ const OnBehalfCreation = () => {
     district: 'Kamrup Metropolitan',
     area: '',
     pincode: '',
+    // Requestor specific fields
+    password: '',
+    identityDocumentType: 'aadhaar',
     // Donor specific fields
     weight: '',
     lastDonationDate: '',
@@ -156,30 +159,46 @@ const OnBehalfCreation = () => {
   const nextStep = () => {
     setError(null);
     if (step === 2) {
-      // Step 2: Verification
-      if (!otpVerified) {
-        setError('Please verify the mobile number via OTP before proceeding.');
-        setShowValidation(true);
-        return;
+      // Step 2: Verification (donor) / Credentials (requestor)
+      if (actionType === 'donor') {
+        if (!otpVerified) {
+          setError('Please verify the mobile number via OTP before proceeding.');
+          setShowValidation(true);
+          return;
+        }
+      } else {
+        if (!userForm.name || !userForm.password || !userForm.gender || !userForm.dob) {
+          setError('Please fill in Name, Password, Gender, and Date of Birth.');
+          setShowValidation(true);
+          return;
+        }
       }
     } else if (step === 3) {
-      // Step 3: Personal Details & Address
-      if (!userForm.name || !userForm.email || !userForm.gender || !userForm.dob || !userForm.currentAddress || !userForm.permanentAddress || !userForm.state || !userForm.district || !userForm.area || !userForm.pincode) {
-        setError('Please fill in all personal details and address credentials.');
-        setShowValidation(true);
-        return;
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(userForm.email)) {
-        setError('Please enter a valid email address.');
-        setShowValidation(true);
-        return;
-      }
-      const pincodeRegex = /^\d{6}$/;
-      if (!pincodeRegex.test(userForm.pincode)) {
-        setError('Please enter a valid 6-digit Pincode.');
-        setShowValidation(true);
-        return;
+      // Step 3: Personal Details & Address (donor) / Location details (requestor)
+      if (actionType === 'donor') {
+        if (!userForm.name || !userForm.email || !userForm.gender || !userForm.dob || !userForm.currentAddress || !userForm.permanentAddress || !userForm.state || !userForm.district || !userForm.area || !userForm.pincode) {
+          setError('Please fill in all personal details and address credentials.');
+          setShowValidation(true);
+          return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(userForm.email)) {
+          setError('Please enter a valid email address.');
+          setShowValidation(true);
+          return;
+        }
+        const pincodeRegex = /^\d{6}$/;
+        if (!pincodeRegex.test(userForm.pincode)) {
+          setError('Please enter a valid 6-digit Pincode.');
+          setShowValidation(true);
+          return;
+        }
+      } else {
+        if (!userForm.district || !userForm.area) {
+          setError('Please enter both District and Area.');
+          setShowValidation(true);
+          return;
+        }
       }
     } else if (step === 4) {
       // Step 4: Role-Specific Details
@@ -229,6 +248,8 @@ const OnBehalfCreation = () => {
       district: 'Kamrup Metropolitan',
       area: '',
       pincode: '',
+      password: '',
+      identityDocumentType: 'aadhaar',
       weight: '',
       lastDonationDate: '',
       availability: 'Active',
@@ -254,21 +275,21 @@ const OnBehalfCreation = () => {
     try {
       const payload = {
         name: userForm.name,
-        email: userForm.email,
-        phone: `+91 ${userForm.phone}`,
         role: actionType === 'donor' ? 'Donor' : 'Seeker',
         gender: userForm.gender,
         dob: userForm.dob,
         bloodGroup: userForm.bloodGroup,
-        currentAddress: userForm.currentAddress,
-        permanentAddress: userForm.permanentAddress,
-        state: userForm.state,
         district: userForm.district,
         area: userForm.area,
-        pincode: userForm.pincode,
         status: 'Active',
         joinedDate: new Date().toISOString().split('T')[0],
         ...(actionType === 'donor' ? {
+          email: userForm.email,
+          phone: `+91 ${userForm.phone}`,
+          currentAddress: userForm.currentAddress,
+          permanentAddress: userForm.permanentAddress,
+          state: userForm.state,
+          pincode: userForm.pincode,
           weight: userForm.weight,
           lastDonationDate: userForm.lastDonationDate || 'Never',
           availability: userForm.availability,
@@ -276,6 +297,11 @@ const OnBehalfCreation = () => {
           associatedWith: userForm.associatedWith,
           emergencyContact: `${userForm.emergencyContactName} (${userForm.emergencyContactPhone})`
         } : {
+          password: userForm.password,
+          identity_document: idFile ? idFile.name : '',
+          identity_document_type: userForm.identityDocumentType,
+          current_address: userForm.currentAddress || '',
+          permanent_address: userForm.permanentAddress || '',
           documentName: idFile ? idFile.name : ''
         })
       };
@@ -304,23 +330,26 @@ const OnBehalfCreation = () => {
     <div className="on-behalf-page-view">
       <div className="page-header mb-6">
         <h1 className="page-title">
-          User Creation
+          User Creation - {actionType === 'donor' ? 'Blood Donor' : 'Blood Requestor'}
         </h1>
         <p className="page-subtitle">
-          Manually initialize user profiles or log urgent blood requests directly into the system database.
+          {actionType === 'donor'
+            ? 'Manually initialize blood donor profiles directly into the system database.'
+            : 'Manually initialize verified blood requestor (seeker) profiles in the system.'}
         </p>
       </div>
+
 
       <div className="glass-card creation-wizard-card">
         {/* Step Indicators */}
         <div className="wizard-steps-indicator">
           <div className={`step-dot ${step >= 1 ? 'active' : ''}`} title="Choose Profile">1</div>
           <div className="step-line"></div>
-          <div className={`step-dot ${step >= 2 ? 'active' : ''}`} title="Verification">2</div>
+          <div className={`step-dot ${step >= 2 ? 'active' : ''}`} title={actionType === 'donor' ? "Verification" : "Credentials"}>2</div>
           <div className="step-line"></div>
-          <div className={`step-dot ${step >= 3 ? 'active' : ''}`} title="Personal Info">3</div>
+          <div className={`step-dot ${step >= 3 ? 'active' : ''}`} title={actionType === 'donor' ? "Personal Info" : "Address Details"}>3</div>
           <div className="step-line"></div>
-          <div className={`step-dot ${step >= 4 ? 'active' : ''}`} title="Eligibility Details">4</div>
+          <div className={`step-dot ${step >= 4 ? 'active' : ''}`} title={actionType === 'donor' ? "Eligibility Details" : "Upload Document"}>4</div>
           <div className="step-line"></div>
           <div className={`step-dot ${step >= 5 ? 'active' : ''}`} title="Review Details">5</div>
           <div className="step-line"></div>
@@ -368,386 +397,658 @@ const OnBehalfCreation = () => {
             </div>
           )}
 
-          {/* STEP 2: Verification */}
+          {/* STEP 2: Verification (donor) / Credentials (requestor) */}
           {step === 2 && (
             <div className="step-content animate-fade">
-              <h3 className="form-subheading mb-4" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Mobile & OTP Verification</h3>
+              {actionType === 'donor' ? (
+                <>
+                  <h3 className="form-subheading mb-4" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Mobile & OTP Verification</h3>
 
-              <div className="form-group mb-4">
-                <label className="form-label">Mobile Number</label>
-                <div className="phone-input-group">
-                  <div className="phone-prefix-box">
-                    <img src={indiaFlag} alt="IN" style={{ width: '18px', height: '12px', borderRadius: '2px', objectFit: 'cover' }} />
-                    <span>+91</span>
+                  <div className="form-group mb-4">
+                    <label className="form-label">Mobile Number</label>
+                    <div className="phone-input-group">
+                      <div className="phone-prefix-box">
+                        <img src={indiaFlag} alt="IN" style={{ width: '18px', height: '12px', borderRadius: '2px', objectFit: 'cover' }} />
+                        <span>+91</span>
+                      </div>
+                      <input
+                        type="tel"
+                        name="phone"
+                        className="phone-input-field"
+                        value={userForm.phone}
+                        onChange={handleUserChange}
+                        placeholder="Enter 10-digit mobile number"
+                        maxLength={10}
+                        disabled={otpVerified}
+                        required
+                      />
+                    </div>
+                    {!otpSent && !otpVerified && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary mt-3"
+                        onClick={handleSendOtp}
+                        style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
+                      >
+                        Send OTP Verification Code
+                      </button>
+                    )}
                   </div>
-                  <input
-                    type="tel"
-                    name="phone"
-                    className="phone-input-field"
-                    value={userForm.phone}
-                    onChange={handleUserChange}
-                    placeholder="Enter 10-digit mobile number"
-                    maxLength={10}
-                    disabled={otpVerified}
-                    required
-                  />
-                </div>
-                {!otpSent && !otpVerified && (
-                  <button
-                    type="button"
-                    className="btn btn-secondary mt-3"
-                    onClick={handleSendOtp}
-                    style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
-                  >
-                    Send OTP Verification Code
-                  </button>
-                )}
-              </div>
 
-              {otpSent && !otpVerified && (
-                <div className="form-group mb-4 animate-fade">
-                  <div className="alert-box alert-info mb-3" style={{
-                    color: 'var(--text-primary)',
-                    border: '1px solid hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.2)',
-                    background: 'var(--primary-light)',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '6px',
-                    fontSize: '0.8rem',
-                    lineHeight: '1.4',
-                    display: 'block'
-                  }}>
-                    <strong>OTP Sent!</strong> A 6-digit One-Time Password has been dispatched to +91 {userForm.phone}. (Use mock code <strong style={{ color: 'var(--primary)' }}>123456</strong>)
+                  {otpSent && !otpVerified && (
+                    <div className="form-group mb-4 animate-fade">
+                      <div className="alert-box alert-info mb-3" style={{
+                        color: 'var(--text-primary)',
+                        border: '1px solid hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.2)',
+                        background: 'var(--primary-light)',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        lineHeight: '1.4',
+                        display: 'block'
+                      }}>
+                        <strong>OTP Sent!</strong> A 6-digit One-Time Password has been dispatched to +91 {userForm.phone}. (Use mock code <strong style={{ color: 'var(--primary)' }}>123456</strong>)
+                      </div>
+                      <label className="form-label">Enter 6-Digit OTP Code</label>
+                      <input
+                        type="text"
+                        placeholder="Enter 123456"
+                        className="form-control mb-3"
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleVerifyOtp}
+                        style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
+                      >
+                        Verify OTP
+                      </button>
+                    </div>
+                  )}
+
+                  {otpVerified && (
+                    <div className="alert-box alert-success mb-4 text-center" style={{ color: 'var(--success)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.75rem', borderRadius: '6px' }}>
+                      <strong>✓ Phone number verified successfully!</strong> Please proceed to the next step.
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h3 className="form-subheading mb-4" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Requestor Credentials</h3>
+
+                  <div className="form-row flex-gap mb-4">
+                    <div className="form-group flex-1">
+                      <label className="form-label">Full Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        className={`form-control${showValidation && !userForm.name ? ' is-invalid' : ''}`}
+                        value={userForm.name}
+                        onChange={handleUserChange}
+                        placeholder="As per official ID"
+                        required
+                      />
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Password</label>
+                      <input
+                        type="text"
+                        name="password"
+                        className={`form-control${showValidation && !userForm.password ? ' is-invalid' : ''}`}
+                        value={userForm.password}
+                        onChange={handleUserChange}
+                        placeholder="Enter password"
+                        required
+                      />
+                    </div>
                   </div>
-                  <label className="form-label">Enter 6-Digit OTP Code</label>
-                  <input
-                    type="text"
-                    placeholder="Enter 123456"
-                    className="form-control mb-3"
-                    maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleVerifyOtp}
-                    style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
-                  >
-                    Verify OTP
-                  </button>
-                </div>
-              )}
 
-              {otpVerified && (
-                <div className="alert-box alert-success mb-4 text-center" style={{ color: 'var(--success)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.75rem', borderRadius: '6px' }}>
-                  <strong>✓ Phone number verified successfully!</strong> Please proceed to the next step.
-                </div>
+                  <div className="form-row flex-gap mb-4">
+                    <div className="form-group flex-1">
+                      <label className="form-label">Gender</label>
+                      <select name="gender" className="form-control" value={userForm.gender} onChange={handleUserChange}>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Date of Birth</label>
+                      <input
+                        type="date"
+                        name="dob"
+                        className={`form-control${showValidation && !userForm.dob ? ' is-invalid' : ''}`}
+                        value={userForm.dob}
+                        onChange={handleUserChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Blood Group</label>
+                      <select name="bloodGroup" className="form-control" value={userForm.bloodGroup} onChange={handleUserChange}>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           )}
 
-          {/* STEP 3: Personal & Address Details */}
+          {/* STEP 3: Personal & Address Details (donor) / Address Details (requestor) */}
           {step === 3 && (
             <div className="step-content animate-fade">
-              <h3 className="form-subheading mb-4" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Personal & Address Details</h3>
+              {actionType === 'donor' ? (
+                <>
+                  <h3 className="form-subheading mb-4" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Personal & Address Details</h3>
 
-              <div className="form-row flex-gap mb-4">
-                <div className="form-group flex-1">
-                  <label className="form-label">Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    className={`form-control${showValidation && !userForm.name ? ' is-invalid' : ''}`}
-                    value={userForm.name}
-                    onChange={handleUserChange}
-                    placeholder="As per official ID"
-                    required
-                  />
-                </div>
-                <div className="form-group flex-1">
-                  <label className="form-label">Email Address</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className={`form-control${showValidation && !userForm.email ? ' is-invalid' : ''}`}
-                    value={userForm.email}
-                    onChange={handleUserChange}
-                    placeholder="e.g. name@domain.com"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-row flex-gap mb-4">
-                <div className="form-group flex-1">
-                  <label className="form-label">Gender</label>
-                  <select name="gender" className="form-control" value={userForm.gender} onChange={handleUserChange}>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div className="form-group flex-1">
-                  <label className="form-label">Date of Birth</label>
-                  <input
-                    type="date"
-                    name="dob"
-                    className={`form-control${showValidation && !userForm.dob ? ' is-invalid' : ''}`}
-                    value={userForm.dob}
-                    onChange={handleUserChange}
-                    required
-                  />
-                </div>
-                <div className="form-group flex-1">
-                  <label className="form-label">Blood Group</label>
-                  <select name="bloodGroup" className="form-control" value={userForm.bloodGroup} onChange={handleUserChange}>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row flex-gap mb-4" style={{ position: 'relative', zIndex: 10 }}>
-                <div className="form-group flex-1">
-                  <label className="form-label">State</label>
-                  <select
-                    name="state"
-                    className="form-control"
-                    value={userForm.state}
-                    onChange={(e) => {
-                      const selectedState = e.target.value;
-                      const defaultDistrict = locationData[selectedState]?.[0] || '';
-                      setUserForm(prev => ({
-                        ...prev,
-                        state: selectedState,
-                        district: defaultDistrict
-                      }));
-                    }}
-                  >
-                    {Object.keys(locationData).map(st => (
-                      <option key={st} value={st}>{st}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group flex-1" style={{ position: 'relative' }}>
-                  <label className="form-label">District</label>
-
-                  {/* Trigger button */}
-                  <div
-                    ref={districtTriggerRef}
-                    className={`form-control district-trigger${showValidation && !userForm.district ? ' is-invalid' : ''}`}
-                    onClick={openDistrict}
-                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', userSelect: 'none' }}
-                  >
-                    <span style={{ color: userForm.district ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                      {userForm.district || 'Select district...'}
-                    </span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                      style={{ color: 'var(--text-secondary)', transition: 'transform 0.2s', transform: districtOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
+                  <div className="form-row flex-gap mb-4">
+                    <div className="form-group flex-1">
+                      <label className="form-label">Full Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        className={`form-control${showValidation && !userForm.name ? ' is-invalid' : ''}`}
+                        value={userForm.name}
+                        onChange={handleUserChange}
+                        placeholder="As per official ID"
+                        required
+                      />
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Email Address</label>
+                      <input
+                        type="email"
+                        name="email"
+                        className={`form-control${showValidation && !userForm.email ? ' is-invalid' : ''}`}
+                        value={userForm.email}
+                        onChange={handleUserChange}
+                        placeholder="e.g. name@domain.com"
+                        required
+                      />
+                    </div>
                   </div>
 
-                  {/* Portal dropdown — renders at body level to escape all stacking contexts */}
-                  {districtOpen && createPortal(
-                    <div
-                      ref={districtPortalRef}
-                      style={{
-                        position: 'absolute',
-                        top: dropdownPos.top,
-                        left: dropdownPos.left,
-                        width: dropdownPos.width,
-                        zIndex: 99999,
-                        background: dropdownPos.bg || '#1a1c24',
-                        border: `1px solid ${dropdownPos.borderColor || 'rgba(255,255,255,0.08)'}`,
-                        borderRadius: '10px',
-                        boxShadow: dropdownPos.shadow || '0 10px 40px rgba(0,0,0,0.4)',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      {/* Search bar */}
-                      <div style={{ padding: '8px 10px', borderBottom: `1px solid ${dropdownPos.borderColor || 'rgba(255,255,255,0.08)'}` }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: dropdownPos.searchBg || 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px' }}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: dropdownPos.mutedColor || '#6b7280', flexShrink: 0 }}>
-                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                          </svg>
-                          <input
-                            autoFocus
-                            type="text"
-                            placeholder="Search district..."
-                            value={districtSearch}
-                            onChange={e => setDistrictSearch(e.target.value)}
-                            style={{
-                              border: 'none',
-                              outline: 'none',
-                              background: 'transparent',
-                              fontSize: '0.82rem',
-                              color: dropdownPos.textColor || '#f3f4f6',
-                              width: '100%'
-                            }}
-                          />
-                          {districtSearch && (
-                            <button
-                              onClick={() => setDistrictSearch('')}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: dropdownPos.mutedColor || '#6b7280', padding: 0, lineHeight: 1, fontSize: '1rem' }}
-                            >✕</button>
-                          )}
-                        </div>
+                  <div className="form-row flex-gap mb-4">
+                    <div className="form-group flex-1">
+                      <label className="form-label">Gender</label>
+                      <select name="gender" className="form-control" value={userForm.gender} onChange={handleUserChange}>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Date of Birth</label>
+                      <input
+                        type="date"
+                        name="dob"
+                        className={`form-control${showValidation && !userForm.dob ? ' is-invalid' : ''}`}
+                        value={userForm.dob}
+                        onChange={handleUserChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Blood Group</label>
+                      <select name="bloodGroup" className="form-control" value={userForm.bloodGroup} onChange={handleUserChange}>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-row flex-gap mb-4" style={{ position: 'relative', zIndex: 10 }}>
+                    <div className="form-group flex-1">
+                      <label className="form-label">State</label>
+                      <select
+                        name="state"
+                        className="form-control"
+                        value={userForm.state}
+                        onChange={(e) => {
+                          const selectedState = e.target.value;
+                          const defaultDistrict = locationData[selectedState]?.[0] || '';
+                          setUserForm(prev => ({
+                            ...prev,
+                            state: selectedState,
+                            district: defaultDistrict
+                          }));
+                        }}
+                      >
+                        {Object.keys(locationData).map(st => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group flex-1" style={{ position: 'relative' }}>
+                      <label className="form-label">District</label>
+
+                      {/* Trigger button */}
+                      <div
+                        ref={districtTriggerRef}
+                        className={`form-control district-trigger${showValidation && !userForm.district ? ' is-invalid' : ''}`}
+                        onClick={openDistrict}
+                        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', userSelect: 'none' }}
+                      >
+                        <span style={{ color: userForm.district ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                          {userForm.district || 'Select district...'}
+                        </span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                          style={{ color: 'var(--text-secondary)', transition: 'transform 0.2s', transform: districtOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
                       </div>
 
-                      {/* Options */}
-                      <ul style={{ listStyle: 'none', margin: 0, padding: '4px 0', maxHeight: '220px', overflowY: 'auto' }}>
-                        {(locationData[userForm.state] || [])
-                          .filter(dt => dt.toLowerCase().includes(districtSearch.toLowerCase()))
-                          .map(dt => (
-                            <li
-                              key={dt}
-                              onClick={() => {
-                                setUserForm(prev => ({ ...prev, district: dt }));
-                                setDistrictOpen(false);
-                                setDistrictSearch('');
-                              }}
-                              style={{
-                                padding: '9px 14px',
-                                cursor: 'pointer',
-                                fontSize: '0.875rem',
-                                color: userForm.district === dt ? '#c0392b' : (dropdownPos.textColor || '#f3f4f6'),
-                                background: userForm.district === dt ? 'rgba(192,57,43,0.10)' : 'transparent',
-                                fontWeight: userForm.district === dt ? 600 : 400,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                transition: 'background 0.15s'
-                              }}
-                              onMouseEnter={e => { if (userForm.district !== dt) e.currentTarget.style.background = dropdownPos.searchBg || 'rgba(128,128,128,0.08)'; }}
-                              onMouseLeave={e => { if (userForm.district !== dt) e.currentTarget.style.background = 'transparent'; }}
-                            >
-                              {dt}
-                              {userForm.district === dt && (
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: '#c0392b' }}>
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
+                      {/* Portal dropdown */}
+                      {districtOpen && createPortal(
+                        <div
+                          ref={districtPortalRef}
+                          style={{
+                            position: 'absolute',
+                            top: dropdownPos.top,
+                            left: dropdownPos.left,
+                            width: dropdownPos.width,
+                            zIndex: 99999,
+                            background: dropdownPos.bg || '#1a1c24',
+                            border: `1px solid ${dropdownPos.borderColor || 'rgba(255,255,255,0.08)'}`,
+                            borderRadius: '10px',
+                            boxShadow: dropdownPos.shadow || '0 10px 40px rgba(0,0,0,0.4)',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          {/* Search bar */}
+                          <div style={{ padding: '8px 10px', borderBottom: `1px solid ${dropdownPos.borderColor || 'rgba(255,255,255,0.08)'}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: dropdownPos.searchBg || 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px' }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: dropdownPos.mutedColor || '#6b7280', flexShrink: 0 }}>
+                                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                              </svg>
+                              <input
+                                autoFocus
+                                type="text"
+                                placeholder="Search district..."
+                                value={districtSearch}
+                                onChange={e => setDistrictSearch(e.target.value)}
+                                style={{
+                                  border: 'none',
+                                  outline: 'none',
+                                  background: 'transparent',
+                                  fontSize: '0.82rem',
+                                  color: dropdownPos.textColor || '#f3f4f6',
+                                  width: '100%'
+                                }}
+                              />
+                              {districtSearch && (
+                                <button
+                                  onClick={() => setDistrictSearch('')}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: dropdownPos.mutedColor || '#6b7280', padding: 0, lineHeight: 1, fontSize: '1rem' }}
+                                >✕</button>
                               )}
-                            </li>
-                          ))}
-                        {(locationData[userForm.state] || []).filter(dt => dt.toLowerCase().includes(districtSearch.toLowerCase())).length === 0 && (
-                          <li style={{ padding: '12px 14px', fontSize: '0.82rem', color: dropdownPos.mutedColor || '#6b7280', textAlign: 'center' }}>No results found</li>
-                        )}
-                      </ul>
-                    </div>,
-                    document.body
-                  )}
-                </div>
-              </div>
+                            </div>
+                          </div>
 
-              <div className="form-row flex-gap mb-4" style={{ position: 'relative', zIndex: 1 }}>
-                <div className="form-group flex-1">
-                  <label className="form-label">Area / Locality</label>
-                  <input
-                    type="text"
-                    name="area"
-                    className={`form-control${showValidation && !userForm.area ? ' is-invalid' : ''}`}
-                    value={userForm.area}
-                    onChange={handleUserChange}
-                    placeholder="Local sector / neighborhood"
-                    required
-                  />
-                </div>
-                <div className="form-group flex-1">
-                  <label className="form-label">Pincode</label>
-                  <input
-                    type="text"
-                    name="pincode"
-                    className={`form-control${showValidation && !/^\d{6}$/.test(userForm.pincode) ? ' is-invalid' : ''}`}
-                    value={userForm.pincode}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      setUserForm(prev => ({ ...prev, pincode: val }));
-                    }}
-                    placeholder="6-digit PIN"
-                    maxLength={6}
-                    required
-                  />
-                </div>
-              </div>
+                          {/* Options */}
+                          <ul style={{ listStyle: 'none', margin: 0, padding: '4px 0', maxHeight: '220px', overflowY: 'auto' }}>
+                            {(locationData[userForm.state] || [])
+                              .filter(dt => dt.toLowerCase().includes(districtSearch.toLowerCase()))
+                              .map(dt => (
+                                <li
+                                  key={dt}
+                                  onClick={() => {
+                                    setUserForm(prev => ({ ...prev, district: dt }));
+                                    setDistrictOpen(false);
+                                    setDistrictSearch('');
+                                  }}
+                                  style={{
+                                    padding: '9px 14px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    color: userForm.district === dt ? '#c0392b' : (dropdownPos.textColor || '#f3f4f6'),
+                                    background: userForm.district === dt ? 'rgba(192,57,43,0.10)' : 'transparent',
+                                    fontWeight: userForm.district === dt ? 600 : 400,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    transition: 'background 0.15s'
+                                  }}
+                                  onMouseEnter={e => { if (userForm.district !== dt) e.currentTarget.style.background = dropdownPos.searchBg || 'rgba(128,128,128,0.08)'; }}
+                                  onMouseLeave={e => { if (userForm.district !== dt) e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  {dt}
+                                  {userForm.district === dt && (
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: '#c0392b' }}>
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                  )}
+                                </li>
+                              ))}
+                            {(locationData[userForm.state] || []).filter(dt => dt.toLowerCase().includes(districtSearch.toLowerCase())).length === 0 && (
+                              <li style={{ padding: '12px 14px', fontSize: '0.82rem', color: dropdownPos.mutedColor || '#6b7280', textAlign: 'center' }}>No results found</li>
+                            )}
+                          </ul>
+                        </div>,
+                        document.body
+                      )}
+                    </div>
+                  </div>
 
-              {/* Current Address */}
-              <div className="form-row mb-3" style={{ position: 'relative', zIndex: 1 }}>
-                <div className="form-group flex-1">
-                  <label className="form-label">Current Address (Present Residence)</label>
-                  <input
-                    type="text"
-                    name="currentAddress"
-                    className={`form-control${showValidation && !userForm.currentAddress ? ' is-invalid' : ''}`}
-                    value={userForm.currentAddress}
-                    onChange={handleUserChange}
-                    placeholder="Flat/House No., Building, Street Name, Landmark"
-                    required
-                  />
-                </div>
-              </div>
+                  <div className="form-row flex-gap mb-4" style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Area / Locality</label>
+                      <input
+                        type="text"
+                        name="area"
+                        className={`form-control${showValidation && !userForm.area ? ' is-invalid' : ''}`}
+                        value={userForm.area}
+                        onChange={handleUserChange}
+                        placeholder="Local sector / neighborhood"
+                        required
+                      />
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Pincode</label>
+                      <input
+                        type="text"
+                        name="pincode"
+                        className={`form-control${showValidation && !/^\d{6}$/.test(userForm.pincode) ? ' is-invalid' : ''}`}
+                        value={userForm.pincode}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          setUserForm(prev => ({ ...prev, pincode: val }));
+                        }}
+                        placeholder="6-digit PIN"
+                        maxLength={6}
+                        required
+                      />
+                    </div>
+                  </div>
 
-              {/* Same Address Checkbox */}
-              <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  fontSize: '0.82rem',
-                  fontWeight: 500,
-                  color: 'var(--text-secondary)',
-                  userSelect: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                  background: sameAsCurrentAddress ? 'var(--primary-light)' : 'transparent',
-                  transition: 'all 0.2s ease'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={sameAsCurrentAddress}
-                    onChange={e => handleSameAddress(e.target.checked)}
-                    style={{ width: '15px', height: '15px', accentColor: 'var(--primary)', cursor: 'pointer' }}
-                  />
-                  <span style={{ color: sameAsCurrentAddress ? 'var(--primary)' : 'var(--text-secondary)' }}>
-                    Permanent address same as current address
-                  </span>
-                </label>
-              </div>
+                  {/* Current Address */}
+                  <div className="form-row mb-3" style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Current Address (Present Residence)</label>
+                      <input
+                        type="text"
+                        name="currentAddress"
+                        className={`form-control${showValidation && !userForm.currentAddress ? ' is-invalid' : ''}`}
+                        value={userForm.currentAddress}
+                        onChange={handleUserChange}
+                        placeholder="Flat/House No., Building, Street Name, Landmark"
+                        required
+                      />
+                    </div>
+                  </div>
 
-              {/* Permanent Address */}
-              <div className="form-row mb-4" style={{ position: 'relative', zIndex: 1 }}>
-                <div className="form-group flex-1">
-                  <label className="form-label">Permanent Address (Family Residence)</label>
-                  <input
-                    type="text"
-                    name="permanentAddress"
-                    className={`form-control${showValidation && !userForm.permanentAddress ? ' is-invalid' : ''}`}
-                    value={userForm.permanentAddress}
-                    onChange={handleUserChange}
-                    placeholder="Permanent family residence address details"
-                    readOnly={sameAsCurrentAddress}
-                    style={sameAsCurrentAddress ? {
-                      background: 'rgba(128,128,128,0.06)',
-                      cursor: 'not-allowed',
-                      color: 'var(--text-secondary)'
-                    } : {}}
-                    required
-                  />
-                  {sameAsCurrentAddress && (
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      ✓ Auto-filled from current address
-                    </p>
-                  )}
-                </div>
-              </div>
+                  {/* Same Address Checkbox */}
+                  <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.82rem',
+                      fontWeight: 500,
+                      color: 'var(--text-secondary)',
+                      userSelect: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border)',
+                      background: sameAsCurrentAddress ? 'var(--primary-light)' : 'transparent',
+                      transition: 'all 0.2s ease'
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={sameAsCurrentAddress}
+                        onChange={e => handleSameAddress(e.target.checked)}
+                        style={{ width: '15px', height: '15px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                      />
+                      <span style={{ color: sameAsCurrentAddress ? 'var(--primary)' : 'var(--text-secondary)' }}>
+                        Permanent address same as current address
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Permanent Address */}
+                  <div className="form-row mb-4" style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Permanent Address (Family Residence)</label>
+                      <input
+                        type="text"
+                        name="permanentAddress"
+                        className={`form-control${showValidation && !userForm.permanentAddress ? ' is-invalid' : ''}`}
+                        value={userForm.permanentAddress}
+                        onChange={handleUserChange}
+                        placeholder="Permanent family residence address details"
+                        readOnly={sameAsCurrentAddress}
+                        style={sameAsCurrentAddress ? {
+                          background: 'rgba(128,128,128,0.06)',
+                          cursor: 'not-allowed',
+                          color: 'var(--text-secondary)'
+                        } : {}}
+                        required
+                      />
+                      {sameAsCurrentAddress && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          ✓ Auto-filled from current address
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="form-subheading mb-4" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Address & Location Details</h3>
+
+                  <div className="form-row flex-gap mb-4" style={{ position: 'relative', zIndex: 10 }}>
+                    <div className="form-group flex-1" style={{ position: 'relative' }}>
+                      <label className="form-label">District</label>
+
+                      {/* Trigger button */}
+                      <div
+                        ref={districtTriggerRef}
+                        className={`form-control district-trigger${showValidation && !userForm.district ? ' is-invalid' : ''}`}
+                        onClick={openDistrict}
+                        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', userSelect: 'none' }}
+                      >
+                        <span style={{ color: userForm.district ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                          {userForm.district || 'Select district...'}
+                        </span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                          style={{ color: 'var(--text-secondary)', transition: 'transform 0.2s', transform: districtOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </div>
+
+                      {/* Portal dropdown */}
+                      {districtOpen && createPortal(
+                        <div
+                          ref={districtPortalRef}
+                          style={{
+                            position: 'absolute',
+                            top: dropdownPos.top,
+                            left: dropdownPos.left,
+                            width: dropdownPos.width,
+                            zIndex: 99999,
+                            background: dropdownPos.bg || '#1a1c24',
+                            border: `1px solid ${dropdownPos.borderColor || 'rgba(255,255,255,0.08)'}`,
+                            borderRadius: '10px',
+                            boxShadow: dropdownPos.shadow || '0 10px 40px rgba(0,0,0,0.4)',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          {/* Search bar */}
+                          <div style={{ padding: '8px 10px', borderBottom: `1px solid ${dropdownPos.borderColor || 'rgba(255,255,255,0.08)'}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: dropdownPos.searchBg || 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px' }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: dropdownPos.mutedColor || '#6b7280', flexShrink: 0 }}>
+                                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                              </svg>
+                              <input
+                                autoFocus
+                                type="text"
+                                placeholder="Search district..."
+                                value={districtSearch}
+                                onChange={e => setDistrictSearch(e.target.value)}
+                                style={{
+                                  border: 'none',
+                                  outline: 'none',
+                                  background: 'transparent',
+                                  fontSize: '0.82rem',
+                                  color: dropdownPos.textColor || '#f3f4f6',
+                                  width: '100%'
+                                }}
+                              />
+                              {districtSearch && (
+                                <button
+                                  onClick={() => setDistrictSearch('')}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: dropdownPos.mutedColor || '#6b7280', padding: 0, lineHeight: 1, fontSize: '1rem' }}
+                                >✕</button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Options */}
+                          <ul style={{ listStyle: 'none', margin: 0, padding: '4px 0', maxHeight: '220px', overflowY: 'auto' }}>
+                            {(locationData[userForm.state] || [])
+                              .filter(dt => dt.toLowerCase().includes(districtSearch.toLowerCase()))
+                              .map(dt => (
+                                <li
+                                  key={dt}
+                                  onClick={() => {
+                                    setUserForm(prev => ({ ...prev, district: dt }));
+                                    setDistrictOpen(false);
+                                    setDistrictSearch('');
+                                  }}
+                                  style={{
+                                    padding: '9px 14px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    color: userForm.district === dt ? '#c0392b' : (dropdownPos.textColor || '#f3f4f6'),
+                                    background: userForm.district === dt ? 'rgba(192,57,43,0.10)' : 'transparent',
+                                    fontWeight: userForm.district === dt ? 600 : 400,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    transition: 'background 0.15s'
+                                  }}
+                                  onMouseEnter={e => { if (userForm.district !== dt) e.currentTarget.style.background = dropdownPos.searchBg || 'rgba(128,128,128,0.08)'; }}
+                                  onMouseLeave={e => { if (userForm.district !== dt) e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  {dt}
+                                  {userForm.district === dt && (
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: '#c0392b' }}>
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                  )}
+                                </li>
+                              ))}
+                            {(locationData[userForm.state] || []).filter(dt => dt.toLowerCase().includes(districtSearch.toLowerCase())).length === 0 && (
+                              <li style={{ padding: '12px 14px', fontSize: '0.82rem', color: dropdownPos.mutedColor || '#6b7280', textAlign: 'center' }}>No results found</li>
+                            )}
+                          </ul>
+                        </div>,
+                        document.body
+                      )}
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Area / Locality</label>
+                      <input
+                        type="text"
+                        name="area"
+                        className={`form-control${showValidation && !userForm.area ? ' is-invalid' : ''}`}
+                        value={userForm.area}
+                        onChange={handleUserChange}
+                        placeholder="Local sector / neighborhood"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Current Address */}
+                  <div className="form-row mb-3" style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Current Address (Optional)</label>
+                      <input
+                        type="text"
+                        name="currentAddress"
+                        className="form-control"
+                        value={userForm.currentAddress}
+                        onChange={handleUserChange}
+                        placeholder="Flat/House No., Building, Street Name, Landmark"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Same Address Checkbox */}
+                  <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.82rem',
+                      fontWeight: 500,
+                      color: 'var(--text-secondary)',
+                      userSelect: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border)',
+                      background: sameAsCurrentAddress ? 'var(--primary-light)' : 'transparent',
+                      transition: 'all 0.2s ease'
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={sameAsCurrentAddress}
+                        onChange={e => handleSameAddress(e.target.checked)}
+                        style={{ width: '15px', height: '15px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                      />
+                      <span style={{ color: sameAsCurrentAddress ? 'var(--primary)' : 'var(--text-secondary)' }}>
+                        Permanent address same as current address
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Permanent Address */}
+                  <div className="form-row mb-4" style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Permanent Address (Optional)</label>
+                      <input
+                        type="text"
+                        name="permanentAddress"
+                        className="form-control"
+                        value={userForm.permanentAddress}
+                        onChange={handleUserChange}
+                        placeholder="Permanent family residence address details"
+                        readOnly={sameAsCurrentAddress}
+                        style={sameAsCurrentAddress ? {
+                          background: 'rgba(128,128,128,0.06)',
+                          cursor: 'not-allowed',
+                          color: 'var(--text-secondary)'
+                        } : {}}
+                      />
+                      {sameAsCurrentAddress && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          ✓ Auto-filled from current address
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -851,7 +1152,22 @@ const OnBehalfCreation = () => {
                   <h3 className="form-subheading mb-4" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Become Requestor - Upload Verification Document</h3>
 
                   <div className="form-group mb-4">
-                    <label className="form-label">Verification Document (e.g. Aadhaar Card, ID Proof)</label>
+                    <label className="form-label">Identity Document Type (Optional)</label>
+                    <select
+                      name="identityDocumentType"
+                      className="form-control mb-4"
+                      value={userForm.identityDocumentType}
+                      onChange={handleUserChange}
+                    >
+                      <option value="aadhaar">Aadhaar Card</option>
+                      <option value="voter_id">Voter ID</option>
+                      <option value="passport">Passport</option>
+                      <option value="driving_license">Driving License</option>
+                      <option value="pan_card">PAN Card</option>
+                      <option value="other">Other ID Proof</option>
+                    </select>
+
+                    <label className="form-label">Verification Document (pdf/jpg/png, max 5MB)</label>
                     <div style={{
                       border: '2px dashed var(--border)',
                       borderRadius: '8px',
@@ -884,7 +1200,7 @@ const OnBehalfCreation = () => {
                           <line x1="12" y1="3" x2="12" y2="15" />
                         </svg>
                         <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                          {idFile ? idFile.name : 'Upload Aadhaar or ID Proof Document'}
+                          {idFile ? idFile.name : 'Upload Identity Document Proof'}
                         </span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           Click to select or drag PDF, PNG, JPG file (Max 5MB)
@@ -904,32 +1220,32 @@ const OnBehalfCreation = () => {
 
               <div className="summary-box glass-card mt-4 p-4" style={{ fontSize: '0.85rem' }}>
                 <div className="summary-details" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                  <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
-                    <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>General Credentials</h4>
-                  </div>
-                  <p><strong className="summary-label">Action:</strong> Register {actionType === 'donor' ? 'Blood Donor' : 'Blood Requestor'}</p>
-                  <p><strong className="summary-label">Full Name:</strong> {userForm.name}</p>
-                  <p><strong className="summary-label">Email:</strong> {userForm.email}</p>
-                  <p><strong className="summary-label">Mobile Phone:</strong> +91 {userForm.phone} (Verified via OTP)</p>
-                  <p><strong className="summary-label">Gender:</strong> {userForm.gender}</p>
-                  <p><strong className="summary-label">Date of Birth:</strong> {userForm.dob}</p>
-                  <p><strong className="summary-label">Blood Group:</strong> <span className="badge badge-approved">{userForm.bloodGroup}</span></p>
-
-                  <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0.5rem 0' }}>
-                    <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>Address & Region</h4>
-                  </div>
-                  <p><strong className="summary-label">State:</strong> {userForm.state}</p>
-                  <p><strong className="summary-label">District:</strong> {userForm.district}</p>
-                  <p><strong className="summary-label">Area / Locality:</strong> {userForm.area}</p>
-                  <p><strong className="summary-label">Pincode:</strong> {userForm.pincode}</p>
-                  <p><strong className="summary-label">Current Address:</strong> {userForm.currentAddress}</p>
-                  <p><strong className="summary-label">Permanent Address:</strong> {userForm.permanentAddress}</p>
-
-                  <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0.5rem 0' }}>
-                    <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>Role Specifics</h4>
-                  </div>
                   {actionType === 'donor' ? (
                     <>
+                      <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>General Credentials</h4>
+                      </div>
+                      <p><strong className="summary-label">Action:</strong> Register Blood Donor</p>
+                      <p><strong className="summary-label">Full Name:</strong> {userForm.name}</p>
+                      <p><strong className="summary-label">Email:</strong> {userForm.email}</p>
+                      <p><strong className="summary-label">Mobile Phone:</strong> +91 {userForm.phone} (Verified via OTP)</p>
+                      <p><strong className="summary-label">Gender:</strong> {userForm.gender}</p>
+                      <p><strong className="summary-label">Date of Birth:</strong> {userForm.dob}</p>
+                      <p><strong className="summary-label">Blood Group:</strong> <span className="badge badge-approved">{userForm.bloodGroup}</span></p>
+
+                      <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0.5rem 0' }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>Address & Region</h4>
+                      </div>
+                      <p><strong className="summary-label">State:</strong> {userForm.state}</p>
+                      <p><strong className="summary-label">District:</strong> {userForm.district}</p>
+                      <p><strong className="summary-label">Area / Locality:</strong> {userForm.area}</p>
+                      <p><strong className="summary-label">Pincode:</strong> {userForm.pincode}</p>
+                      <p><strong className="summary-label">Current Address:</strong> {userForm.currentAddress}</p>
+                      <p><strong className="summary-label">Permanent Address:</strong> {userForm.permanentAddress}</p>
+
+                      <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0.5rem 0' }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>Role Specifics</h4>
+                      </div>
                       <p><strong className="summary-label">Weight:</strong> {userForm.weight} kg</p>
                       <p><strong className="summary-label">Last Donation:</strong> {userForm.lastDonationDate || 'Never'}</p>
                       <p><strong className="summary-label">Availability:</strong> {userForm.availability}</p>
@@ -938,7 +1254,31 @@ const OnBehalfCreation = () => {
                       <p><strong className="summary-label">Emergency Contact:</strong> {userForm.emergencyContactName} ({userForm.emergencyContactPhone})</p>
                     </>
                   ) : (
-                    <p><strong className="summary-label">Verification Doc:</strong> <span style={{ color: 'var(--success)', fontWeight: 600 }}>{idFile ? idFile.name : 'None'}</span></p>
+                    <>
+                      <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>Requestor Credentials</h4>
+                      </div>
+                      <p><strong className="summary-label">Action:</strong> Register Blood Requestor</p>
+                      <p><strong className="summary-label">Full Name:</strong> {userForm.name}</p>
+                      <p><strong className="summary-label">Password:</strong> {userForm.password}</p>
+                      <p><strong className="summary-label">Gender:</strong> {userForm.gender}</p>
+                      <p><strong className="summary-label">Date of Birth:</strong> {userForm.dob}</p>
+                      <p><strong className="summary-label">Blood Group:</strong> <span className="badge badge-approved">{userForm.bloodGroup}</span></p>
+
+                      <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0.5rem 0' }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>Address & Location</h4>
+                      </div>
+                      <p><strong className="summary-label">District:</strong> {userForm.district}</p>
+                      <p><strong className="summary-label">Area / Locality:</strong> {userForm.area}</p>
+                      <p><strong className="summary-label">Current Address:</strong> {userForm.currentAddress || 'Omitted'}</p>
+                      <p><strong className="summary-label">Permanent Address:</strong> {userForm.permanentAddress || 'Omitted'}</p>
+
+                      <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0.5rem 0' }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '0.95rem' }}>Verification Details</h4>
+                      </div>
+                      <p><strong className="summary-label">ID Document Type:</strong> {userForm.identityDocumentType.toUpperCase()}</p>
+                      <p><strong className="summary-label">Verification Doc:</strong> <span style={{ color: 'var(--success)', fontWeight: 600 }}>{idFile ? idFile.name : 'None'}</span></p>
+                    </>
                   )}
                 </div>
               </div>
@@ -1004,7 +1344,7 @@ const OnBehalfCreation = () => {
                 <button
                   className="btn btn-primary"
                   onClick={nextStep}
-                  disabled={step === 2 && !otpVerified}
+                  disabled={step === 2 && actionType === 'donor' && !otpVerified}
                 >
                   <span>Next Step</span> <FaArrowRight />
                 </button>

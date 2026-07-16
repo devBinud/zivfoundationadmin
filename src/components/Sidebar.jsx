@@ -347,6 +347,19 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
         })}
       </nav>
 
+      <div className="sidebar-footer">
+        <button className="nav-item logout-btn" onClick={logout}>
+          <span className="nav-item-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </span>
+          <span className="nav-item-label">Log Out</span>
+        </button>
+      </div>
+
       <style>{`
         .sidebar {
           width: var(--sidebar-width);
@@ -577,6 +590,27 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
         .nav-sub-item.active .nav-sub-item-dot, .nav-sub-item-btn.active .nav-sub-item-dot {
           color: var(--primary);
           opacity: 1;
+        }
+
+        .sidebar-footer {
+          padding: 0.75rem;
+          border-top: 1px solid var(--border);
+          flex-shrink: 0;
+        }
+
+        html.light-theme .sidebar-footer {
+          border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .logout-btn {
+          color: #ef4444 !important;
+          width: 100%;
+          transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+          background: rgba(239, 68, 68, 0.08) !important;
+          color: #ef4444 !important;
         }
       `}</style>
     </aside>

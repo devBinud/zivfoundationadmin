@@ -187,13 +187,6 @@ const UserDirectory = () => {
                     </td>
                     <td>
                       <span className="user-name">{u.name}</span>
-                      {u.documentName && (
-                        <div style={{ marginTop: '4px' }}>
-                          <span className="badge badge-info" style={{ textTransform: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '0.15rem 0.4rem' }}>
-                            📄 {u.documentName}
-                          </span>
-                        </div>
-                      )}
                     </td>
                     <td>
                       <div className="contact-details">
@@ -308,25 +301,28 @@ const UserDirectory = () => {
           margin-top: 0.1rem;
         }
 
-        .role-donor-badge {
-          background: rgba(197, 17, 46, 0.1);
-          color: #ff4d6d;
-          border: 1px solid rgba(197, 17, 46, 0.2);
+        .role-donor-badge, .role-seeker-badge {
+          background: rgba(255, 255, 255, 0.05) !important;
+          color: var(--text-secondary) !important;
+          border: none !important;
+        }
+        html.light-theme .role-donor-badge, html.light-theme .role-seeker-badge {
+          background: rgba(0, 0, 0, 0.04) !important;
+          color: var(--text-secondary) !important;
         }
 
-        .role-seeker-badge {
-          background: rgba(59, 130, 246, 0.1);
-          color: #60a5fa;
-          border: 1px solid rgba(59, 130, 246, 0.2);
+        .badge-active {
+          background: transparent !important;
+          color: var(--text-primary) !important;
+          border: none !important;
         }
 
         .blood-badge {
-          font-weight: 700;
-          color: var(--primary);
-          background: var(--primary-light);
-          padding: 0.2rem 0.5rem;
-          border-radius: 4px;
-          border: 1px solid var(--border);
+          font-weight: 600;
+          color: var(--text-primary) !important;
+          background: transparent !important;
+          border: none !important;
+          padding: 0 !important;
         }
 
         .btn-sm {

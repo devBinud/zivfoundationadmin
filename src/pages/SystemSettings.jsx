@@ -74,7 +74,7 @@ const SystemSettings = () => {
       ) : (
         <form onSubmit={handleSubmit} className="custom-form">
           <div className="grid-2col-1-1" style={{ alignItems: 'start' }}>
-            
+
             {/* Vetting & Donation Rules Card */}
             <div className="glass-card" style={{ padding: '1.5rem' }}>
               <h3 className="card-headline mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -90,8 +90,8 @@ const SystemSettings = () => {
                     </p>
                   </div>
                   <label className="switch-wrapper">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       name="autoApproveVetting"
                       checked={settings.autoApproveVetting}
                       onChange={handleChange}
@@ -106,8 +106,8 @@ const SystemSettings = () => {
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
                   Minimum verified donations a donor must complete to unlock Gold Tier status in mobile honors views.
                 </p>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   name="minDonationsGold"
                   value={settings.minDonationsGold}
                   onChange={handleChange}
@@ -135,8 +135,8 @@ const SystemSettings = () => {
                     </p>
                   </div>
                   <label className="switch-wrapper">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       name="emailConfirmation"
                       checked={settings.emailConfirmation}
                       onChange={handleChange}
@@ -155,8 +155,8 @@ const SystemSettings = () => {
                     </p>
                   </div>
                   <label className="switch-wrapper">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       name="smsUrgentBroadcasts"
                       checked={settings.smsUrgentBroadcasts}
                       onChange={handleChange}
@@ -178,9 +178,9 @@ const SystemSettings = () => {
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
                   Determine duration of inactivity before admins are signed out of the vetting portal dashboard.
                 </p>
-                <select 
-                  name="sessionTimeout" 
-                  value={settings.sessionTimeout} 
+                <select
+                  name="sessionTimeout"
+                  value={settings.sessionTimeout}
                   onChange={handleChange}
                   className="form-input"
                   style={{ maxWidth: '180px' }}
@@ -201,8 +201,8 @@ const SystemSettings = () => {
                     </p>
                   </div>
                   <label className="switch-wrapper">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       name="enforce2FA"
                       checked={settings.enforce2FA}
                       onChange={handleChange}
@@ -225,7 +225,7 @@ const SystemSettings = () => {
                 <FaSave /> {saving ? 'Syncing...' : 'Save Rule Configuration'}
               </button>
             </div>
-            
+
           </div>
         </form>
       )}

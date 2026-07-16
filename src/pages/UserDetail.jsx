@@ -157,7 +157,7 @@ const UserDetail = () => {
               {/* Status indicator — separate pill, clearly visible */}
               <div className={`ud-status-pill ${isActive ? 'ud-status-active' : 'ud-status-suspended'}`}>
                 {isActive
-                  ? <><span className="ud-status-dot" /> Active</>
+                  ? <>Active</>
                   : <><FaBan size={10} /> Suspended</>
                 }
               </div>
@@ -246,7 +246,19 @@ const UserDetail = () => {
               </Section>
             ) : (
               <Section title="Requestor Profile" icon={FaAmbulance}>
-                <InfoRow label="Verification Doc" icon={FaFileAlt} value={user.documentName || 'None uploaded'} />
+                <InfoRow 
+                  label="Verification Doc" 
+                  icon={FaFileAlt} 
+                  value={
+                    user.documentName ? (
+                      <span className="badge badge-info" style={{ textTransform: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', padding: '0.15rem 0.45rem', border: 'none' }}>
+                        📄 {user.documentName}
+                      </span>
+                    ) : (
+                      'None uploaded'
+                    )
+                  } 
+                />
               </Section>
             )}
 
@@ -383,14 +395,14 @@ const UserDetail = () => {
           margin-bottom: 0.85rem;
         }
         .ud-status-active {
-          background: rgba(16, 185, 129, 0.12);
-          color: #10b981;
-          border: 1px solid rgba(16, 185, 129, 0.3);
+          background: rgba(16, 185, 129, 0.12) !important;
+          color: #10b981 !important;
+          border: none !important;
         }
         .ud-status-suspended {
-          background: rgba(239, 68, 68, 0.1);
-          color: #ef4444;
-          border: 1px solid rgba(239, 68, 68, 0.25);
+          background: rgba(239, 68, 68, 0.1) !important;
+          color: #ef4444 !important;
+          border: none !important;
         }
         .ud-status-dot {
           width: 7px;
@@ -436,33 +448,40 @@ const UserDetail = () => {
           margin-bottom: 1rem;
         }
         .role-donor-badge {
-          background: rgba(197,17,46,0.1);
-          color: #ff4d6d;
-          border: 1px solid rgba(197,17,46,0.2);
+          background: rgba(255, 255, 255, 0.05);
+          color: var(--text-secondary);
+          border: none;
           font-size: 0.73rem;
           padding: 0.22rem 0.7rem;
           border-radius: 20px;
           display: inline-flex;
           align-items: center;
         }
+        html.light-theme .role-donor-badge {
+          background: rgba(0, 0, 0, 0.04);
+          color: var(--text-secondary);
+        }
         .role-seeker-badge {
-          background: rgba(59,130,246,0.1);
-          color: #60a5fa;
-          border: 1px solid rgba(59,130,246,0.2);
+          background: rgba(255, 255, 255, 0.05);
+          color: var(--text-secondary);
+          border: none;
           font-size: 0.73rem;
           padding: 0.22rem 0.7rem;
           border-radius: 20px;
           display: inline-flex;
           align-items: center;
+        }
+        html.light-theme .role-seeker-badge {
+          background: rgba(0, 0, 0, 0.04);
+          color: var(--text-secondary);
         }
         .blood-badge-lg {
           font-weight: 700;
-          color: var(--primary);
-          background: var(--primary-light);
-          padding: 0.22rem 0.7rem;
-          border-radius: 6px;
-          border: 1px solid var(--border);
-          font-size: 0.78rem;
+          color: var(--text-primary);
+          background: transparent;
+          border: none;
+          padding: 0;
+          font-size: 0.85rem;
           display: inline-flex;
           align-items: center;
         }
