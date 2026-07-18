@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import logoZf from '../assets/logo_zf.png';
+import Swal from 'sweetalert2';
 
 const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
   const { logout, user } = useAuth();
@@ -38,6 +40,29 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
           <line x1="16" y1="11" x2="22" y2="11" />
         </svg>
       )
+    },
+    {
+      id: 'masters',
+      type: 'dropdown',
+      label: 'Masters',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+          <path d="M7 7h.01" />
+        </svg>
+      ),
+      items: [
+        {
+          path: '/masters/org-types',
+          label: 'Organization Types',
+          icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+            </svg>
+          )
+        }
+      ]
     },
     {
       id: 'directory',
@@ -147,7 +172,7 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
     {
       id: 'notifications',
       type: 'dropdown',
-      label: 'Notifications',
+      label: 'Notifications Setting',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -204,6 +229,32 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
       id: 'theme',
       type: 'theme-dropdown',
       label: 'Theme Selection'
+    },
+    {
+      id: 'public-portal',
+      type: 'external-link',
+      label: 'Public Portal',
+      url: 'https://brittofoundation.vercel.app/',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="2" y1="12" x2="22" y2="12" />
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+        </svg>
+      )
+    },
+    {
+      id: 'help-docs',
+      type: 'link',
+      path: '/help-center',
+      label: 'Help & Docs',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      )
     }
   ];
 
@@ -231,8 +282,9 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-brand">
-        <span className="logo-text">Ziv <span style={{ color: 'var(--primary)' }}>Admin</span></span>
+      <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0 1rem' }}>
+        <img src={logoZf} alt="Ziv Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+        <span className="logo-text">Ziv <span style={{ color: 'var(--primary)' }}>Foundation</span></span>
       </div>
 
       <nav className="sidebar-nav">
@@ -299,6 +351,34 @@ const Sidebar = ({ isOpen, onClose, theme, setTheme }) => {
                   </div>
                 </div>
               </div>
+            );
+          }
+
+          if (section.type === 'external-link') {
+            if (section.isAction) {
+              return (
+                <button
+                  key={section.id}
+                  onClick={section.onClick}
+                  className="nav-item"
+                  style={{ background: 'transparent', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+                >
+                  <span className="nav-item-icon">{section.icon}</span>
+                  <span className="nav-item-label">{section.label}</span>
+                </button>
+              );
+            }
+            return (
+              <a
+                key={section.id}
+                href={section.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="nav-item"
+              >
+                <span className="nav-item-icon">{section.icon}</span>
+                <span className="nav-item-label">{section.label}</span>
+              </a>
             );
           }
 

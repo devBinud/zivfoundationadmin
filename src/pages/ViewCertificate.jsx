@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import Swal from 'sweetalert2';
-import { FaCertificate, FaMedal, FaDownload, FaArrowLeft } from 'react-icons/fa';
+import { FaCertificate, FaMedal, FaDownload, FaArrowLeft, FaGem, FaTrophy } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import html2pdf from 'html2pdf.js';
@@ -149,8 +149,13 @@ const ViewCertificate = () => {
                   in recognition and deep appreciation of outstanding humanitarian service. By selflessly completing <strong>{cert.donationCount} blood donations</strong>, this lifesaver has helped preserve hope, sustain clinical operations, and rescue up to <strong>{cert.donationCount * 3} lives</strong>.
                 </p>
 
-                <div className="cert-tier-stamp">
-                  <span>HONOR TIER:</span> {cert.tier.toUpperCase()}
+                <div className="cert-tier-stamp" style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#b8860b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {cert.tier.toLowerCase() === 'platinum' && <FaGem style={{ fontSize: '0.9rem' }} />}
+                    {cert.tier.toLowerCase() === 'gold' && <FaTrophy style={{ fontSize: '0.9rem' }} />}
+                    {cert.tier.toLowerCase() === 'silver' && <FaMedal style={{ fontSize: '0.9rem' }} />}
+                    <span>ৰক্তবন্ধু ({cert.tier.toUpperCase()})</span>
+                  </div>
                 </div>
 
                 <div className="cert-signatures">

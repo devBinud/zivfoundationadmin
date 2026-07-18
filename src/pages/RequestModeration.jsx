@@ -180,8 +180,8 @@ const RequestModeration = () => {
                 {Array(5).fill(0).map((_, i) => (
                   <tr key={i}>
                     <td><Skeleton width={150} height={14} /></td>
-                    <td><Skeleton width={45} height={22} borderRadius={6} /></td>
-                    <td><Skeleton width={75} height={22} borderRadius={20} /></td>
+                    <td><Skeleton width={30} height={14} /></td>
+                    <td><Skeleton width={60} height={14} /></td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <Skeleton width={55} height={26} borderRadius={6} />
@@ -211,11 +211,11 @@ const RequestModeration = () => {
                 {requests.map(r => (
                   <tr key={r.id}>
                     <td style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>{r.seekerName}</td>
-                    <td>
-                      <span className="blood-badge-mod">{r.bloodGroup}</span>
+                    <td style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 700 }}>
+                      {r.bloodGroup}
                     </td>
                     <td>
-                      <span className={`badge badge-${r.status.toLowerCase()}`}>
+                      <span className={`status-text-${r.status.toLowerCase()}`} style={{ fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {r.status}
                       </span>
                     </td>
@@ -335,7 +335,7 @@ const RequestModeration = () => {
               <div className="mock-pdf-viewport glass-card">
                 <div className="pdf-header flex-between mb-4">
                   <div>
-                    <h4>METRO GENERAL HOSPITAL CLINICS</h4>
+                    <h4>GUWAHATI MEDICAL COLLEGE & HOSPITAL</h4>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Department of Pathology & Hematology</p>
                   </div>
                   <span className="pdf-official-seal">CONFIDENTIAL</span>
@@ -353,8 +353,8 @@ const RequestModeration = () => {
 
                 <div className="pdf-signature mt-6 flex-between" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   <div>
-                    <p style={{ textDecoration: 'underline' }}>Dr. Rachel Green, MD</p>
-                    <p>Licence ID: #NY-991204</p>
+                    <p style={{ textDecoration: 'underline' }}>Dr. Rahul Sharma, MD</p>
+                    <p>Licence ID: #AS-991204</p>
                   </div>
                   <div className="qr-code-placeholder">
                     [SECURE SYSTEM VERIFIED]
@@ -376,6 +376,16 @@ const RequestModeration = () => {
       )}
 
       <style>{`
+        .status-text-pending {
+          color: var(--warning);
+        }
+        .status-text-approved {
+          color: var(--success);
+        }
+        .status-text-rejected {
+          color: var(--danger);
+        }
+
         .blood-badge-mod {
           font-weight: 700;
           color: var(--primary);

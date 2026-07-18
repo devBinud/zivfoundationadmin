@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import Swal from 'sweetalert2';
@@ -6,6 +6,7 @@ import indiaFlag from '../assets/icons/india.png';
 
 const AddOrganization = () => {
   const navigate = useNavigate();
+  const [orgTypes, setOrgTypes] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     type: 'Hospital',
@@ -14,6 +15,13 @@ const AddOrganization = () => {
     email: '',
     contactPerson: ''
   });
+
+  useEffect(() => {
+    api.orgTypes.list().then(data => {
+      setOrgTypes(data);
+      if (data.length > 0) setFormData(prev => ({ ...prev, type: data[0].label }));
+    }).catch(() => {});
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -120,11 +128,20 @@ const AddOrganization = () => {
               />
             </div>
             <div className="form-group flex-1">
-              <label className="form-label">Facility Type</label>
+              <label className="form-label">Organization Type</label>
               <select name="type" className="form-control" value={formData.type} onChange={handleChange}>
-                <option value="Hospital">Hospital</option>
-                <option value="Blood Bank">Blood Bank</option>
-                <option value="College">College Camp</option>
+                {orgTypes.length > 0
+                  ? orgTypes.map(t => <option key={t.id} value={t.label}>{t.label}</option>)
+                  : (
+                    <>
+                      <option value="Hospital">Hospital</option>
+                      <option value="Blood Bank">Blood Bank</option>
+                      <option value="NGO">NGO / Non-Profit</option>
+                      <option value="Clinic">Clinic / Diagnostic Centre</option>
+                      <option value="College">College Camp</option>
+                    </>
+                  )
+                }
               </select>
             </div>
           </div>
@@ -192,10 +209,7 @@ const AddOrganization = () => {
             />
           </div>
 
-          <div className="form-actions mt-6 flex-between">
-            <button type="button" className="btn btn-secondary" onClick={() => navigate('/partners')}>
-              View All Organizations
-            </button>
+          <div className="form-actions mt-6" style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button type="submit" className="btn btn-success">
               Register Organization
             </button>

@@ -200,7 +200,7 @@ const UserDirectory = () => {
                       </span>
                     </td>
                     <td>
-                      <span className="blood-badge">{u.bloodGroup}</span>
+                      <span className="blood-badge badge-blood">{u.bloodGroup}</span>
                     </td>
                     <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{u.joinedDate}</td>
                     <td>

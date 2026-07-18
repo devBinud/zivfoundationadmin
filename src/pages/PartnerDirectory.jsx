@@ -16,6 +16,8 @@ const PartnerDirectory = () => {
   // Edit mode state
   const [formMode, setFormMode] = useState('list'); // 'list', 'edit'
   const [activePartnerId, setActivePartnerId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
   const [formData, setFormData] = useState({
     name: '',
     type: 'Hospital',
@@ -24,6 +26,8 @@ const PartnerDirectory = () => {
     email: '',
     contactPerson: ''
   });
+
+  const [orgTypes, setOrgTypes] = useState([]);
 
   const fetchPartners = async () => {
     try {
@@ -39,6 +43,7 @@ const PartnerDirectory = () => {
 
   useEffect(() => {
     fetchPartners();
+    api.orgTypes.list().then(setOrgTypes).catch(() => {});
   }, []);
 
   const handleChange = (e) => {
@@ -77,6 +82,10 @@ const PartnerDirectory = () => {
           return 'background: rgba(59, 130, 246, 0.1); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.2);';
         case 'Blood Bank':
           return 'background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2);';
+        case 'NGO':
+          return 'background: rgba(139, 92, 246, 0.1); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.2);';
+        case 'Clinic':
+          return 'background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2);';
         default:
           return 'background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2);';
       }
@@ -87,7 +96,7 @@ const PartnerDirectory = () => {
       html: `
         <div style="text-align: left; font-family: var(--font-sans); color: var(--text-primary); font-size: 0.9rem; line-height: 1.8; margin-top: 1rem;">
           <div style="margin-bottom: 0.6rem; display: flex; align-items: center; gap: 8px;">
-            <strong style="width: 120px; color: var(--text-secondary);">Facility Type:</strong> 
+            <strong style="width: 120px; color: var(--text-secondary);">Organization Type:</strong> 
             <span class="badge" style="font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 6px; ${getBadgeStyle(partner.type)}">${partner.type}</span>
           </div>
           <div style="margin-bottom: 0.6rem; display: flex; align-items: flex-start; gap: 8px;">
@@ -285,6 +294,7 @@ const PartnerDirectory = () => {
               No partner records found. Click '+ Add Partner Site' to register one.
             </div>
           ) : (
+          <>
             <div className="table-container" style={{ margin: 0 }}>
               <table className="custom-table">
                 <thead>
@@ -298,10 +308,10 @@ const PartnerDirectory = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {partners.map((p, index) => (
+                  {partners.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map((p, index) => (
                     <tr key={p.id}>
                       <td style={{ textAlign: 'center', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                        {index + 1}
+                        {(currentPage - 1) * PAGE_SIZE + index + 1}
                       </td>
                       <td style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>{p.name}</td>
                       <td>
@@ -334,6 +344,39 @@ const PartnerDirectory = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Bar */}
+            {(() => {
+              const totalPages = Math.ceil(partners.length / PAGE_SIZE);
+              if (totalPages <= 1) return null;
+              return (
+                <div className="pagination-bar">
+                  <span className="pagination-info">
+                    Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, partners.length)} of {partners.length} records
+                  </span>
+                  <div className="pagination-controls">
+                    <button
+                      className="page-btn"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >← Prev</button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                      <button
+                        key={pg}
+                        className={`page-btn ${pg === currentPage ? 'page-btn-active' : ''}`}
+                        onClick={() => setCurrentPage(pg)}
+                      >{pg}</button>
+                    ))}
+                    <button
+                      className="page-btn"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >Next →</button>
+                  </div>
+                </div>
+              );
+            })()}
+          </>
           )}
         </div>
       ) : (
@@ -354,11 +397,20 @@ const PartnerDirectory = () => {
                 />
               </div>
               <div className="form-group flex-1">
-                <label className="form-label">Facility Type</label>
+                <label className="form-label">Organization Type</label>
                 <select name="type" className="form-control" value={formData.type} onChange={handleChange}>
-                  <option value="Hospital">Hospital</option>
-                  <option value="Blood Bank">Blood Bank</option>
-                  <option value="College">College Camp</option>
+                  {orgTypes.length > 0
+                    ? orgTypes.map(t => <option key={t.id} value={t.label}>{t.label}</option>)
+                    : (
+                      <>
+                        <option value="Hospital">Hospital</option>
+                        <option value="Blood Bank">Blood Bank</option>
+                        <option value="NGO">NGO / Non-Profit</option>
+                        <option value="Clinic">Clinic / Diagnostic Centre</option>
+                        <option value="College">College Camp</option>
+                      </>
+                    )
+                  }
                 </select>
               </div>
             </div>
@@ -441,10 +493,14 @@ const PartnerDirectory = () => {
 
         .type-hospital { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
         .type-bloodbank { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .type-ngo { background: rgba(139, 92, 246, 0.1); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.2); }
+        .type-clinic { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
         .type-college { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
 
         html.light-theme .type-hospital { color: #2563eb; }
         html.light-theme .type-bloodbank { color: #dc2626; }
+        html.light-theme .type-ngo { color: #7c3aed; }
+        html.light-theme .type-clinic { color: #d97706; }
         html.light-theme .type-college { color: #059669; }
 
         .partner-actions-cell {
@@ -608,6 +664,61 @@ const PartnerDirectory = () => {
             width: 100%;
             justify-content: center;
           }
+        }
+
+        .pagination-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.85rem 1rem 0.25rem;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+        }
+
+        .pagination-info {
+          font-size: 0.78rem;
+          color: var(--text-secondary);
+        }
+
+        .pagination-controls {
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+        }
+
+        .page-btn {
+          padding: 0.35rem 0.7rem;
+          font-size: 0.78rem;
+          font-weight: 500;
+          border-radius: 6px;
+          border: 1px solid var(--border);
+          background: transparent;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.15s ease;
+          font-family: var(--font-sans);
+        }
+
+        .page-btn:hover:not(:disabled) {
+          background: rgba(255,255,255,0.05);
+          color: var(--text-primary);
+          border-color: var(--text-muted);
+        }
+
+        html.light-theme .page-btn:hover:not(:disabled) {
+          background: rgba(0,0,0,0.04);
+          color: #1e293b;
+        }
+
+        .page-btn-active {
+          background: var(--primary) !important;
+          border-color: var(--primary) !important;
+          color: #fff !important;
+        }
+
+        .page-btn:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
         }
       `}</style>
     </div>

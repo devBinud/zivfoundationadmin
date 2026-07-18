@@ -243,8 +243,13 @@ a:hover {
   font-size: 0.72rem;
   font-weight: 600;
   border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+
+/* Blood group badges keep uppercase */
+.badge-blood {
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
 }
 
 .badge-pending {
@@ -872,3 +877,63 @@ html.light-theme .badge-secondary {
   }
 }
 
+
+/* Broadcast Panel Layout Overrides */
+.broadcast-form-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.25rem;
+  align-items: end;
+}
+
+.broadcast-form-grid .form-group {
+  margin-bottom: 0;
+}
+
+.broadcast-form-grid .col-title {
+  grid-column: span 6;
+}
+
+.broadcast-form-grid .col-target {
+  grid-column: span 3;
+}
+
+.broadcast-form-grid .col-category {
+  grid-column: span 3;
+}
+
+.broadcast-form-grid .col-message {
+  grid-column: span 9;
+}
+
+.broadcast-form-grid .col-actions {
+  grid-column: span 3;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.broadcast-form-grid .col-actions .btn {
+  width: 100%;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  height: 38px;
+}
+
+@media (max-width: 992px) {
+  .broadcast-form-grid .col-title {
+    grid-column: span 12;
+  }
+  .broadcast-form-grid .col-target {
+    grid-column: span 6;
+  }
+  .broadcast-form-grid .col-category {
+    grid-column: span 6;
+  }
+  .broadcast-form-grid .col-message {
+    grid-column: span 12;
+  }
+  .broadcast-form-grid .col-actions {
+    grid-column: span 12;
+  }
+}

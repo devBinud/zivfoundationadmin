@@ -108,6 +108,27 @@ const OnBehalfModal = ({ isOpen, onClose, onSuccess }) => {
         setError('Please enter a valid email address.');
         return;
       }
+      const today = new Date();
+      const dobDate = new Date(userForm.dob);
+      if (dobDate > today) {
+        setError('Date of Birth cannot be a future date.');
+        return;
+      }
+      if (actionType === 'donor') {
+        let age = today.getFullYear() - dobDate.getFullYear();
+        const m = today.getMonth() - dobDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+          age--;
+        }
+        if (age < 18) {
+          setError('Donor must be at least 18 years old to donate blood.');
+          return;
+        }
+        if (age > 100) {
+          setError('Please enter a valid Date of Birth.');
+          return;
+        }
+      }
     } else if (step === 4) {
       if (actionType === 'donor') {
         if (!userForm.weight || !userForm.preferredLocations || !userForm.emergencyContactName || !userForm.emergencyContactPhone) {
@@ -394,6 +415,7 @@ const OnBehalfModal = ({ isOpen, onClose, onSuccess }) => {
                   <input 
                     type="date" 
                     name="dob" 
+                    max={new Date().toISOString().split('T')[0]}
                     className="form-control" 
                     value={userForm.dob} 
                     onChange={handleUserChange}

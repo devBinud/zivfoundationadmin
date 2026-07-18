@@ -129,41 +129,28 @@ const BroadcastPanel = () => {
         </p>
       </div>
 
-      <div className="grid-2col-1-1-6">
-        {/* Left Side: Create Broadcast Card */}
-        <div className="glass-card" style={{ padding: '1.5rem', alignSelf: 'start' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Top Side: Create Broadcast Card */}
+        <div className="glass-card" style={{ padding: '1.5rem' }}>
           <h3 className="card-headline mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FaBullhorn style={{ color: 'var(--primary)' }} /> Draft Alert Banner
           </h3>
           <form onSubmit={handleSubmit} className="custom-form">
-            <div className="form-group mb-4">
-              <label className="form-label">Alert Title *</label>
-              <input 
-                type="text" 
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="e.g. Summer Blood Drive Campaign" 
-                className="form-input"
-                required
-              />
-            </div>
-            
-            <div className="form-group mb-4">
-              <label className="form-label">Alert Message *</label>
-              <textarea 
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                placeholder="Write the message text that will scroll on the app..." 
-                className="form-input"
-                rows="4"
-                required
-              ></textarea>
-            </div>
-
-            <div className="form-row mb-4">
-              <div className="form-group flex-1">
+            <div className="broadcast-form-grid">
+              <div className="form-group col-title">
+                <label className="form-label">Alert Title *</label>
+                <input 
+                  type="text" 
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  placeholder="e.g. Summer Blood Drive Campaign" 
+                  className="form-input"
+                  required
+                />
+              </div>
+              
+              <div className="form-group col-target">
                 <label className="form-label">Target Audience</label>
                 <select name="target" value={formData.target} onChange={handleChange} className="form-input">
                   <option value="All">All Users</option>
@@ -173,7 +160,7 @@ const BroadcastPanel = () => {
                 </select>
               </div>
 
-              <div className="form-group flex-1">
+              <div className="form-group col-category">
                 <label className="form-label">Alert Category</label>
                 <select name="category" value={formData.category} onChange={handleChange} className="form-input">
                   <option value="Info">Info (Blue)</option>
@@ -182,15 +169,31 @@ const BroadcastPanel = () => {
                   <option value="Danger">Danger (Red)</option>
                 </select>
               </div>
-            </div>
 
-            <button type="submit" className="btn btn-primary btn-full-width" style={{ gap: '8px' }}>
-              <FaPaperPlane /> Publish Broadcast
-            </button>
+              <div className="form-group col-message">
+                <label className="form-label">Alert Message *</label>
+                <textarea 
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Write the message text that will scroll on the app..." 
+                  className="form-input"
+                  rows="2"
+                  required
+                  style={{ resize: 'none' }}
+                ></textarea>
+              </div>
+
+              <div className="col-actions">
+                <button type="submit" className="btn btn-primary">
+                  <FaPaperPlane /> Publish Broadcast
+                </button>
+              </div>
+            </div>
           </form>
         </div>
 
-        {/* Right Side: Active Broadcast Log */}
+        {/* Bottom Side: Active Broadcast Log */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
           <h3 className="card-headline mb-4">Active Alert Dispatch</h3>
 
@@ -238,7 +241,7 @@ const BroadcastPanel = () => {
                     <tr key={b.id}>
                       <td>
                         <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{b.title}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={b.message}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={b.message}>
                           {b.message}
                         </div>
                       </td>

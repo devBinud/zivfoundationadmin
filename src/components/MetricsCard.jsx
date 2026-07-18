@@ -34,6 +34,35 @@ const MetricsCard = ({ title, value, icon, trend, status = 'primary' }) => {
         .metrics-card {
           position: relative;
           overflow: hidden;
+          cursor: default;
+          background: var(--border) !important;
+          border: none !important;
+          clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+          box-shadow: var(--shadow-sm);
+        }
+
+        .metrics-card::before {
+          content: "";
+          position: absolute;
+          top: 1px;
+          left: 1px;
+          right: 1px;
+          bottom: 1px;
+          background: rgba(22, 24, 30, 0.8);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+          z-index: 0;
+        }
+
+        html.light-theme .metrics-card::before {
+          background: rgba(255, 255, 255, 0.85);
+        }
+
+
+        .metrics-header, .metrics-body {
+          position: relative;
+          z-index: 1;
         }
 
         .metrics-header {

@@ -110,7 +110,7 @@ const PushNotifications = () => {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                placeholder="e.g. Urgent Matching Needed in NY" 
+                placeholder="e.g. Urgent Matching Needed in Assam" 
                 className="form-input"
                 required
               />

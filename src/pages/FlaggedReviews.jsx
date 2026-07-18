@@ -84,16 +84,16 @@ const FlaggedReviews = () => {
             <div key={i} className="glass-card flagged-review-card mb-4">
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <Skeleton width={90} height={22} borderRadius={20} />
+                  <Skeleton width={90} height={22} borderRadius={6} />
                   <Skeleton width={130} height={14} />
                 </div>
-                <Skeleton width={80} height={22} borderRadius={20} />
+                <Skeleton width={80} height={22} borderRadius={6} />
               </div>
               <Skeleton width={200} height={15} style={{ marginBottom: '0.4rem' }} />
               <Skeleton width={280} height={13} style={{ marginBottom: '0.4rem' }} />
               <Skeleton width={240} height={13} style={{ marginBottom: '1rem' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Skeleton width={130} height={32} borderRadius={8} />
+                <Skeleton width={100} height={26} borderRadius={6} />
               </div>
             </div>
           ))}
@@ -108,7 +108,7 @@ const FlaggedReviews = () => {
             <div key={r.id} className="glass-card flagged-review-card mb-4 animate-fade">
               <div className="flagged-review-header flex-between mb-4">
                 <div className="flagged-review-origin">
-                  <span className="badge badge-rejected" style={{ fontSize: '0.7rem' }}>
+                  <span className="review-reason-tag">
                     {r.reason}
                   </span>
                   <span className="flagged-review-date-text ml-4">
@@ -131,7 +131,7 @@ const FlaggedReviews = () => {
                   <FaArrowRight style={{ color: 'var(--text-muted)' }} />
                 </div>
                 <div className="participant">
-                  <span className="participant-role text-red">Offender:</span>
+                  <span className="participant-role">Offender:</span>
                   <span className="participant-name">{r.offenderName}</span>
                 </div>
               </div>
@@ -147,13 +147,13 @@ const FlaggedReviews = () => {
                 <span className="flagged-review-id-tag">Report ID: {r.id}</span>
                 {r.status === 'Pending' ? (
                   <button 
-                    className="btn btn-sm btn-success"
+                    className="btn-resolve"
                     onClick={() => handleResolveReview(r.id)}
                   >
-                    Resolve & Dismiss Flags
+                    Resolve Report
                   </button>
                 ) : (
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 6 }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                     Resolved & Settled
                   </span>
                 )}
@@ -183,15 +183,29 @@ const FlaggedReviews = () => {
           margin-left: 1rem;
         }
 
+        .review-reason-tag {
+          display: inline-flex;
+          align-items: center;
+          padding: 0.22rem 0.55rem;
+          font-size: 0.7rem;
+          font-weight: 600;
+          border-radius: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          background: rgba(120, 120, 120, 0.08);
+          border: 1px solid var(--border);
+          color: var(--text-secondary);
+        }
+
         .flagged-review-participants {
           display: flex;
           align-items: center;
           gap: 1.5rem;
-          background: rgba(0, 0, 0, 0.2);
-          padding: 0.75rem 1.25rem;
+          background: rgba(120, 120, 120, 0.05);
+          padding: 0.6rem 1rem;
           border-radius: 8px;
           border: 1px solid var(--border);
-          font-size: 0.85rem;
+          font-size: 0.8rem;
         }
 
         .participant {
@@ -203,10 +217,6 @@ const FlaggedReviews = () => {
           color: var(--text-secondary);
         }
 
-        .participant-role.text-red {
-          color: var(--danger);
-        }
-
         .participant-name {
           color: var(--text-primary);
           font-weight: 600;
@@ -216,11 +226,38 @@ const FlaggedReviews = () => {
           color: var(--text-muted);
         }
 
+        .btn-resolve {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.4rem 0.9rem;
+          font-size: 0.8rem;
+          font-weight: 600;
+          border-radius: 6px;
+          cursor: pointer;
+          border: 1px solid rgba(16, 185, 129, 0.25);
+          background: var(--success-light);
+          color: var(--success) !important;
+          font-family: var(--font-sans);
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-resolve:hover {
+          background: var(--success);
+          color: white !important;
+          border-color: var(--success);
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-resolve:active {
+          transform: scale(0.97);
+        }
+
         .flagged-review-comment-bubble {
-          background: rgba(239, 68, 68, 0.03);
-          border-left: 4px solid var(--danger);
-          padding: 1rem 1.25rem;
-          border-radius: 0 8px 8px 0;
+          background: rgba(239, 68, 68, 0.04);
+          border: 1px dashed rgba(239, 68, 68, 0.3);
+          padding: 0.85rem 1.25rem;
+          border-radius: 8px;
         }
 
         .comment-bubble-label {
@@ -235,7 +272,7 @@ const FlaggedReviews = () => {
         .comment-quote {
           font-style: italic;
           color: var(--text-primary);
-          font-size: 0.95rem;
+          font-size: 0.825rem;
         }
 
         .flagged-review-id-tag {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import Swal from 'sweetalert2';
-import { FaEye, FaDownload, FaTrash, FaMedal } from 'react-icons/fa';
+import { FaEye, FaDownload, FaTrash, FaMedal, FaGem, FaTrophy } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
@@ -87,6 +87,7 @@ const CertificateManagement = () => {
     }
   };
 
+
   return (
     <div className="certs-page-view">
       <div className="page-header mb-6">
@@ -156,10 +157,40 @@ const CertificateManagement = () => {
                       {index + 1}
                     </td>
                     <td style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>{c.donorName}</td>
-                    <td style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>{c.donationCount} Units Donated</td>
                     <td>
-                      <span className={`badge ${getTierBadgeClass(c.tier)}`}>
-                        <FaMedal style={{ marginRight: '4px' }} /> {c.tier}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start' }}>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '0.875rem', fontWeight: '500' }}>
+                          {c.donationCount} Units Donated
+                        </span>
+                        <button
+                          onClick={() => navigate(`/certificates/history/${c.id}`)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--primary)',
+                            fontSize: '0.72rem',
+                            fontWeight: '600',
+                            padding: 0,
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            marginTop: '1px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}
+                          title="Click to view full donation timeline history"
+                        >
+                          View Donation History
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`badge ${getTierBadgeClass(c.tier)}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '0.35rem 0.75rem', borderRadius: '30px', textTransform: 'none' }}>
+                        {c.tier.toLowerCase() === 'platinum' && <FaGem style={{ color: '#06b6d4' }} />}
+                        {c.tier.toLowerCase() === 'gold' && <FaTrophy style={{ color: '#eab308' }} />}
+                        {c.tier.toLowerCase() === 'silver' && <FaMedal style={{ color: '#94a3b8' }} />}
+                        <span style={{ fontWeight: '600' }}>ৰক্তবন্ধু</span>
+                        <span style={{ opacity: 0.8, fontSize: '0.78rem', fontWeight: '500' }}>({c.tier})</span>
                       </span>
                     </td>
                     <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{c.issueDate}</td>
@@ -234,21 +265,25 @@ const CertificateManagement = () => {
         }
 
         .tier-badge-plat {
-          background: rgba(156, 163, 175, 0.1);
-          color: #9ca3af;
-          border: 1px solid rgba(156, 163, 175, 0.2);
+          background: rgba(156, 163, 175, 0.12);
+          color: var(--text-primary);
+          border: 1px solid rgba(156, 163, 175, 0.25);
         }
 
         .tier-badge-gold {
-          background: rgba(245, 158, 11, 0.1);
-          color: #f59e0b;
-          border: 1px solid rgba(245, 158, 11, 0.2);
+          background: rgba(245, 158, 11, 0.12);
+          color: #d97706;
+          border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        html:not(.light-theme) .tier-badge-gold {
+          color: #fbbf24;
         }
 
         .tier-badge-silver {
-          background: rgba(148, 163, 184, 0.1);
-          color: #64748b;
-          border: 1px solid rgba(148, 163, 184, 0.2);
+          background: rgba(148, 163, 184, 0.12);
+          color: var(--text-primary);
+          border: 1px solid rgba(148, 163, 184, 0.25);
         }
       `}</style>
     </div>

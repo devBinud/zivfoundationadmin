@@ -1,12 +1,13 @@
 /* Header - Top Navigation Panel */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Header = ({ onMenuToggle, theme, setTheme }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -23,19 +24,51 @@ const Header = ({ onMenuToggle, theme, setTheme }) => {
   // Resolve current view label
   const getPageTitle = () => {
     switch (location.pathname) {
-      case '/':
-        return 'System Overview';
-      case '/users':
-        return 'User Directories';
-      case '/partners':
-        return 'Partner Records Management';
-      case '/requests':
-        return 'Medical Blood Requests Moderation';
-      case '/flagged-reviews':
-        return 'Flagged Reviews Board';
+      case '/':                    return 'System Overview';
+      case '/users':               return 'User Directories';
+      case '/partners':            return 'Partner Records';
+      case '/partners/add':        return 'Add New Organization';
+      case '/requests':            return 'Request Moderation';
+      case '/flagged-reviews':     return 'Flagged Reviews Board';
+      case '/on-behalf':           return 'User Creation';
+      case '/certificates':        return 'Honors & Awards';
+      case '/broadcasts':          return 'Broadcast Panel';
+      case '/push-notifications':  return 'Push Campaigns';
+      case '/settings':            return 'System Settings';
+      case '/masters/org-types':   return 'Organization Types Master';
       default:
+        if (location.pathname.startsWith('/users/'))        return 'User Details';
+        if (location.pathname.startsWith('/certificates/')) return 'View Certificate';
         return 'Ziv Foundation Admin';
     }
+  };
+
+  // Short display name — show only the first name or just "Admin"
+  const getShortName = () => {
+    if (!user?.name) return 'Admin';
+    const parts = user.name.trim().split(' ');
+    // If name is "Ziv Admin" → show "Admin", otherwise show first word
+    return parts[parts.length - 1];
+  };
+
+  // Resolve breadcrumbs for current path
+  const getBreadcrumbs = () => {
+    const path = location.pathname;
+    if (path === '/') return ['Ziv Foundation', 'Dashboard'];
+    if (path === '/users') return ['Directory Records', 'Users Directory'];
+    if (path.startsWith('/users/')) return ['Directory Records', 'User Details'];
+    if (path === '/partners') return ['Directory Records', 'Partners Directory'];
+    if (path === '/partners/add') return ['Directory Records', 'Add New Organization'];
+    if (path === '/requests') return ['Verification Board', 'Request Queue'];
+    if (path === '/flagged-reviews') return ['Verification Board', 'Flagged Reviews'];
+    if (path === '/on-behalf') return ['User Creation', 'On-Behalf Creation'];
+    if (path === '/certificates') return ['Certifications', 'Honors & Awards'];
+    if (path.startsWith('/certificates/view/')) return ['Certifications', 'View Certificate'];
+    if (path === '/broadcasts') return ['Notifications Setting', 'Broadcast Panel'];
+    if (path === '/push-notifications') return ['Notifications Setting', 'Push Campaigns'];
+    if (path === '/settings') return ['System Operations', 'System Settings'];
+    if (path === '/masters/org-types') return ['Masters', 'Organization Types'];
+    return ['Ziv Foundation', 'Console'];
   };
 
   return (
@@ -48,9 +81,15 @@ const Header = ({ onMenuToggle, theme, setTheme }) => {
             <line x1="4" x2="20" y1="18" y2="18"/>
           </svg>
         </button>
-        <div className="header-title">
-          <h1>{getPageTitle()}</h1>
-          <p className="header-subtitle">Welcome back, {user?.name || 'Administrator'}</p>
+        <div className="header-breadcrumbs" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
+          {getBreadcrumbs().map((crumb, idx, arr) => (
+            <React.Fragment key={idx}>
+              <span style={{ color: idx === arr.length - 1 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                {crumb}
+              </span>
+              {idx < arr.length - 1 && <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>/</span>}
+            </React.Fragment>
+          ))}
         </div>
       </div>
 
@@ -63,8 +102,7 @@ const Header = ({ onMenuToggle, theme, setTheme }) => {
             tabIndex={0}
           >
             <div className="profile-details">
-              <span className="profile-name">{user?.name || 'Ziv Admin'}</span>
-              <span className="profile-role">{user?.role || 'Super Admin'}</span>
+              <span className="profile-name">{getShortName()}</span>
             </div>
             <div className="profile-avatar">
               {user?.name ? user.name.charAt(0).toUpperCase() : 'Z'}
@@ -76,6 +114,35 @@ const Header = ({ onMenuToggle, theme, setTheme }) => {
               <span className="dropdown-user-name">{user?.name || 'Ziv Admin'}</span>
               <span className="dropdown-user-email">{user?.email || 'admin@zivfoundation.org'}</span>
             </div>
+            
+            <div className="dropdown-divider"></div>
+            
+            <button className="dropdown-item" onClick={() => { setProfileDropdownOpen(false); navigate('/settings'); }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', color: 'var(--primary)' }}>
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              View Profile
+            </button>
+            
+            <button className="dropdown-item" onClick={() => { setProfileDropdownOpen(false); navigate('/settings'); }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', color: 'var(--primary)' }}>
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              Account Settings
+            </button>
+            
+            <div className="dropdown-divider"></div>
+            
+            <button className="dropdown-item logout-btn" onClick={() => { setProfileDropdownOpen(false); logout(); }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Log Out
+            </button>
           </div>
         </div>
       </div>
@@ -241,14 +308,19 @@ const Header = ({ onMenuToggle, theme, setTheme }) => {
           border-radius: 30px;
           transition: all 0.2s ease;
           user-select: none;
-        }
-
-        .header-profile:hover, .header-profile.active {
           background: rgba(255, 255, 255, 0.05);
         }
 
-        html.light-theme .header-profile:hover, html.light-theme .header-profile.active {
+        html.light-theme .header-profile {
           background: rgba(0, 0, 0, 0.03);
+        }
+
+        .header-profile:hover, .header-profile.active {
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        html.light-theme .header-profile:hover, html.light-theme .header-profile.active {
+          background: rgba(0, 0, 0, 0.05);
         }
 
         .profile-dropdown {

@@ -24,6 +24,9 @@ import ViewCertificate from './pages/ViewCertificate';
 import BroadcastPanel from './pages/BroadcastPanel';
 import PushNotifications from './pages/PushNotifications';
 import SystemSettings from './pages/SystemSettings';
+import OrgTypeMaster from './pages/OrgTypeMaster';
+import HelpCenter from './pages/HelpCenter';
+import DonationHistory from './pages/DonationHistory';
 
 // Protected Route Guard
 const ProtectedRoute = ({ children }) => {
@@ -94,9 +97,12 @@ function App() {
           <Route path="on-behalf" element={<OnBehalfCreation />} />
           <Route path="certificates" element={<CertificateManagement />} />
           <Route path="certificates/view/:id" element={<ViewCertificate />} />
+          <Route path="certificates/history/:id" element={<DonationHistory />} />
           <Route path="broadcasts" element={<BroadcastPanel />} />
           <Route path="push-notifications" element={<PushNotifications />} />
           <Route path="settings" element={<SystemSettings />} />
+          <Route path="masters/org-types" element={<OrgTypeMaster />} />
+          <Route path="help-center" element={<HelpCenter />} />
         </Route>
 
         {/* Fallback to Dashboard/Home */}

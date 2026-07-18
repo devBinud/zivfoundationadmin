@@ -6,6 +6,11 @@ import { api } from '../services/api';
 import MetricsCard from '../components/MetricsCard';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import {
+  ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  LineChart, Line, AreaChart, Area, PieChart, Pie, Cell
+} from 'recharts';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -18,9 +23,13 @@ const Dashboard = () => {
     approvedRequestsCount: 0,
     totalRequestsCount: 0,
     pendingFlaggedReviewsCount: 0,
-    resolvedFlaggedReviewsCount: 0
+    resolvedFlaggedReviewsCount: 0,
+    activeDonorsCount: 0,
+    suspendedDonorsCount: 0,
+    activeSeekersCount: 0,
+    suspendedSeekersCount: 0
   });
-  
+
   const [recentRequests, setRecentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +46,11 @@ const Dashboard = () => {
       const donors = users.filter(u => u.role === 'Donor').length;
       const seekers = users.filter(u => u.role === 'Seeker').length;
       const activeUsers = users.filter(u => u.status === 'Active').length;
+      const activeDonors = users.filter(u => u.role === 'Donor' && u.status === 'Active').length;
+      const suspendedDonors = users.filter(u => u.role === 'Donor' && u.status === 'Suspended').length;
+      const activeSeekers = users.filter(u => u.role === 'Seeker' && u.status === 'Active').length;
+      const suspendedSeekers = users.filter(u => u.role === 'Seeker' && u.status === 'Suspended').length;
+
       const pendingReqs = requests.filter(r => r.status === 'Pending').length;
       const approvedReqs = requests.filter(r => r.status === 'Approved').length;
       const pendingDisps = disputes.filter(d => d.status === 'Pending').length;
@@ -52,7 +66,11 @@ const Dashboard = () => {
         approvedRequestsCount: approvedReqs,
         totalRequestsCount: requests.length,
         pendingFlaggedReviewsCount: pendingDisps,
-        resolvedFlaggedReviewsCount: resolvedDisps
+        resolvedFlaggedReviewsCount: resolvedDisps,
+        activeDonorsCount: activeDonors,
+        suspendedDonorsCount: suspendedDonors,
+        activeSeekersCount: activeSeekers,
+        suspendedSeekersCount: suspendedSeekers
       });
 
       // Show top 5 recent requests
@@ -79,6 +97,46 @@ const Dashboard = () => {
   // Calculate percentages for the role breakdown visual meter
   const donorPercentage = stats.usersCount ? Math.round((stats.donorsCount / stats.usersCount) * 100) : 0;
   const seekerPercentage = stats.usersCount ? Math.round((stats.seekersCount / stats.usersCount) * 100) : 0;
+  const maxOperationsVal = Math.max(stats.pendingRequestsCount, stats.approvedRequestsCount, stats.pendingFlaggedReviewsCount, 1);
+
+  // Recharts Mock Datasets
+  const bloodGroupData = React.useMemo(() => [
+    { name: 'O+', count: 8 },
+    { name: 'O-', count: 4 },
+    { name: 'A+', count: 5 },
+    { name: 'A-', count: 2 },
+    { name: 'B+', count: 6 },
+    { name: 'B-', count: 1 },
+    { name: 'AB+', count: 3 },
+    { name: 'AB-', count: 2 }
+  ], []);
+
+  const requestsTrendData = React.useMemo(() => [
+    { name: 'Jan', requests: 2 },
+    { name: 'Feb', requests: 5 },
+    { name: 'Mar', requests: 8 },
+    { name: 'Apr', requests: 12 },
+    { name: 'May', requests: 9 },
+    { name: 'Jun', requests: 15 },
+    { name: 'Jul', requests: 18 }
+  ], []);
+
+  const statusDistributionData = React.useMemo(() => [
+    { name: 'Pending', value: stats.pendingRequestsCount || 2, color: '#f59e0b' },
+    { name: 'Approved', value: stats.approvedRequestsCount || 1, color: '#3b82f6' },
+    { name: 'Completed', value: 3, color: '#10b981' },
+    { name: 'Rejected', value: stats.pendingFlaggedReviewsCount || 1, color: '#ef4444' }
+  ], [stats.pendingRequestsCount, stats.approvedRequestsCount, stats.pendingFlaggedReviewsCount]);
+
+  const donorRegistrationData = React.useMemo(() => [
+    { name: 'Jan', donors: 4 },
+    { name: 'Feb', donors: 7 },
+    { name: 'Mar', donors: 5 },
+    { name: 'Apr', donors: 10 },
+    { name: 'May', donors: 8 },
+    { name: 'Jun', donors: 14 },
+    { name: 'Jul', donors: 12 }
+  ], []);
 
   return (
     <div className="dashboard-view">
@@ -175,149 +233,179 @@ const Dashboard = () => {
         </div>
       ) : (
         <div>
-          {/* Charts Row */}
-          <div className="dashboard-grid mt-4">
-            {/* Left: Trend SVG Chart */}
+          {/* Recharts Analytics Grid */}
+          <div className="analytics-grid mt-4">
+            {/* 1. Blood Group Availability */}
             <div className="glass-card chart-card">
-              <h3 className="card-headline mb-4">Weekly Blood Request Trends</h3>
-              <div className="chart-wrapper">
-                <svg viewBox="0 0 600 200" className="trend-chart-svg">
-                  <defs>
-                    <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.25"/>
-                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0"/>
-                    </linearGradient>
-                    <linearGradient id="chart-stroke" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#ff4d6d" />
-                      <stop offset="100%" stopColor="var(--primary)" />
-                    </linearGradient>
-                  </defs>
-                  
-                  {/* Grid Lines */}
-                  <line x1="50" y1="20" x2="550" y2="20" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-                  <line x1="50" y1="65" x2="550" y2="65" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-                  <line x1="50" y1="110" x2="550" y2="110" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-                  <line x1="50" y1="155" x2="550" y2="155" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-                  
-                  {/* Y Axis Labels */}
-                  <text x="35" y="24" className="chart-axis-label">20</text>
-                  <text x="35" y="69" className="chart-axis-label">15</text>
-                  <text x="35" y="114" className="chart-axis-label">10</text>
-                  <text x="35" y="159" className="chart-axis-label">5</text>
-                  
-                  {/* Area Fill */}
-                  <path 
-                    d="M 50 140 C 100 110, 120 70, 150 90 C 200 110, 220 130, 250 120 C 300 110, 320 50, 350 40 C 400 30, 420 70, 450 60 C 500 50, 520 15, 550 25 L 550 155 L 50 155 Z" 
-                    fill="url(#chart-fill)" 
-                  />
-
-                  {/* Chart Line Path */}
-                  <path 
-                    d="M 50 140 C 100 110, 120 70, 150 90 C 200 110, 220 130, 250 120 C 300 110, 320 50, 350 40 C 400 30, 420 70, 450 60 C 500 50, 520 15, 550 25" 
-                    fill="none" 
-                    stroke="url(#chart-stroke)" 
-                    strokeWidth="3.5" 
-                    strokeLinecap="round"
-                  />
-                  
-                  {/* Circular Indicators for data points */}
-                  <circle cx="50" cy="140" r="5" className="chart-dot" />
-                  <circle cx="150" cy="90" r="5" className="chart-dot" />
-                  <circle cx="250" cy="120" r="5" className="chart-dot" />
-                  <circle cx="350" cy="40" r="5" className="chart-dot" />
-                  <circle cx="450" cy="60" r="5" className="chart-dot" />
-                  <circle cx="550" cy="25" r="5" className="chart-dot" />
-                  
-                  {/* X Axis Labels */}
-                  <text x="50" y="180" className="chart-axis-label" textAnchor="middle">W1</text>
-                  <text x="150" y="180" className="chart-axis-label" textAnchor="middle">W2</text>
-                  <text x="250" y="180" className="chart-axis-label" textAnchor="middle">W3</text>
-                  <text x="350" y="180" className="chart-axis-label" textAnchor="middle">W4</text>
-                  <text x="450" y="180" className="chart-axis-label" textAnchor="middle">W5</text>
-                  <text x="550" y="180" className="chart-axis-label" textAnchor="middle">W6</text>
-                </svg>
+              <h3 className="card-headline mb-3">Blood Group Availability</h3>
+              <p className="page-subtitle mb-4">Number of active available donors classified by blood group</p>
+              <div style={{ width: '100%', height: 240 }}>
+                <ResponsiveContainer>
+                  <BarChart data={bloodGroupData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="name" stroke="var(--text-secondary)" tickLine={false} axisLine={false} style={{ fontSize: '11px' }} />
+                    <YAxis stroke="var(--text-secondary)" tickLine={false} axisLine={false} style={{ fontSize: '11px' }} />
+                    <Tooltip
+                      contentStyle={{ background: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text-primary)', borderRadius: '8px', fontSize: '11px' }}
+                      itemStyle={{ color: 'var(--primary)' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                    />
+                    <Bar dataKey="count" fill="var(--primary)" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Right: Role Breakdown & Platform Summary */}
-            <div className="glass-card dashboard-summary-card">
-              <h3 className="card-headline mb-4">User Roles Breakdown</h3>
-              
-              <div className="role-progress-wrapper mb-6">
-                <div className="flex-between mb-2">
-                  <span className="role-label">Donors ({stats.donorsCount})</span>
-                  <span className="role-percentage">{donorPercentage}%</span>
-                </div>
-                <div className="progress-bar-bg">
-                  <div className="progress-bar-fill progress-donor" style={{ width: `${donorPercentage}%` }}></div>
-                </div>
+            {/* 2. Blood Requests Trend */}
+            <div className="glass-card chart-card">
+              <h3 className="card-headline mb-3">Blood Requests Trend</h3>
+              <p className="page-subtitle mb-4">Monthly aggregation of seeker blood requests submitted to the platform</p>
+              <div style={{ width: '100%', height: 240 }}>
+                <ResponsiveContainer>
+                  <AreaChart data={requestsTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="requestsColor" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="name" stroke="var(--text-secondary)" tickLine={false} axisLine={false} style={{ fontSize: '11px' }} />
+                    <YAxis stroke="var(--text-secondary)" tickLine={false} axisLine={false} style={{ fontSize: '11px' }} />
+                    <Tooltip contentStyle={{ background: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text-primary)', borderRadius: '8px', fontSize: '11px' }} />
+                    <Area type="monotone" dataKey="requests" stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#requestsColor)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
+            </div>
 
-              <div className="role-progress-wrapper mb-6">
-                <div className="flex-between mb-2">
-                  <span className="role-label">Seekers ({stats.seekersCount})</span>
-                  <span className="role-percentage">{seekerPercentage}%</span>
-                </div>
-                <div className="progress-bar-bg">
-                  <div className="progress-bar-fill progress-seeker" style={{ width: `${seekerPercentage}%` }}></div>
-                </div>
+            {/* 3. Request Status Distribution */}
+            <div className="glass-card chart-card">
+              <h3 className="card-headline mb-3">Request Status Distribution</h3>
+              <p className="page-subtitle mb-4">Breakdown of seeker blood requests by current moderation status</p>
+              <div style={{ width: '100%', height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={statusDistributionData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {statusDistributionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text-primary)', borderRadius: '8px', fontSize: '11px' }} />
+                    <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '11px', color: 'var(--text-secondary)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
+            </div>
 
-              <div className="quick-actions-box mt-4">
-                <h4 className="quick-headline">Admin Operations Tip</h4>
-                <p className="quick-description mt-2">
-                  Use the user directories page to execute an <strong>On-Behalf Creation</strong>. This allows admins to manually override or construct user files or create emergency requests when seekers have no digital internet access.
-                </p>
-                <div className="mt-4">
-                  <Link to="/users" className="btn btn-primary btn-full-width">Go to User Directory</Link>
-                </div>
+            {/* 4. Donor Registration Trend */}
+            <div className="glass-card chart-card">
+              <h3 className="card-headline mb-3">Donor Registration Trend</h3>
+              <p className="page-subtitle mb-4">Outreach growth showing monthly count of newly registered blood donors</p>
+              <div style={{ width: '100%', height: 240 }}>
+                <ResponsiveContainer>
+                  <BarChart data={donorRegistrationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="name" stroke="var(--text-secondary)" tickLine={false} axisLine={false} style={{ fontSize: '11px' }} />
+                    <YAxis stroke="var(--text-secondary)" tickLine={false} axisLine={false} style={{ fontSize: '11px' }} />
+                    <Tooltip
+                      contentStyle={{ background: 'var(--card-bg)', borderColor: 'var(--border)', color: 'var(--text-primary)', borderRadius: '8px', fontSize: '11px' }}
+                      itemStyle={{ color: '#10b981' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                    />
+                    <Bar dataKey="donors" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
 
-          {/* Active Request Dispatch (Full Width Table) */}
-          <div className="glass-card mt-4 dashboard-requests-card-full">
-            <div className="flex-between mb-4">
-              <h3 className="card-headline">Active Request Dispatch</h3>
-              <Link to="/requests" className="btn btn-secondary btn-sm-text">View All queue</Link>
+          {/* Bottom Grid: Table & Timeline */}
+          <div className="dashboard-bottom-grid mt-4">
+            {/* Left: Active Request Dispatch (Full Table) */}
+            <div className="glass-card dashboard-requests-card-full">
+              <div className="flex-between mb-4">
+                <h3 className="card-headline">Active Request Dispatch</h3>
+                <Link to="/requests" className="btn btn-secondary btn-sm-text">View All Queue</Link>
+              </div>
+
+              <div className="table-container" style={{ margin: 0 }}>
+                {recentRequests.length === 0 ? (
+                  <p style={{ padding: '2rem', color: 'var(--text-muted)' }} className="text-center">No blood requests currently registered.</p>
+                ) : (
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Seeker</th>
+                        <th>Group</th>
+                        <th>Required Qty</th>
+                        <th>Urgency</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentRequests.map(r => (
+                        <tr key={r.id}>
+                          <td>{r.seekerName}</td>
+                          <td>
+                            <span className="blood-group-tag">{r.bloodGroup}</span>
+                          </td>
+                          <td>{r.unitsNeeded} Units</td>
+                          <td>{r.urgency}</td>
+                          <td>
+                            <span className={`badge badge-${r.status.toLowerCase()}`}>
+                              {r.status}
+                            </span>
+                          </td>
+                          <td>
+                            <Link to="/requests" className="btn btn-secondary btn-sm-text" style={{ padding: '0.25rem 0.5rem', fontSize: '0.72rem', borderRadius: '6px' }}>View</Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </div>
 
-            <div className="table-container" style={{ margin: 0 }}>
-              {recentRequests.length === 0 ? (
-                <p style={{ padding: '2rem', color: 'var(--text-muted)' }} className="text-center">No blood requests currently registered.</p>
-              ) : (
-                <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>Seeker</th>
-                      <th>Group</th>
-                      <th>Required qty</th>
-                      <th>Urgency</th>
-                      <th>Vetting State</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentRequests.map(r => (
-                      <tr key={r.id}>
-                        <td>{r.seekerName}</td>
-                        <td>
-                          <span className="blood-group-tag">{r.bloodGroup}</span>
-                        </td>
-                        <td>{r.unitsNeeded} Units</td>
-                        <td>
-                          <span className={`urgency-dot ${r.urgency.toLowerCase()}`}></span>
-                          {r.urgency}
-                        </td>
-                        <td>
-                          <span className={`badge badge-${r.status.toLowerCase()}`}>
-                            {r.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+            {/* Right: System Activity Log */}
+            <div className="glass-card activity-timeline-card">
+              <h3 className="card-headline mb-4">System Activity Log</h3>
+
+              <div className="timeline-container">
+                <div className="timeline-item">
+                  <div className="timeline-badge danger"></div>
+                  <div className="timeline-content">
+                    <p className="timeline-text"><strong>AB- request</strong> created by Hiten Kalita</p>
+                    <span className="timeline-time">5 mins ago</span>
+                  </div>
+                </div>
+
+                <div className="timeline-item">
+                  <div className="timeline-badge success"></div>
+                  <div className="timeline-content">
+                    <p className="timeline-text"><strong>Donor Nabajit</strong> approved & verified</p>
+                    <span className="timeline-time">2 hours ago</span>
+                  </div>
+                </div>
+
+                <div className="timeline-item">
+                  <div className="timeline-badge primary"></div>
+                  <div className="timeline-content">
+                    <p className="timeline-text"><strong>New donor</strong> Jahnabi Deka registered</p>
+                    <span className="timeline-time">1 day ago</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -326,7 +414,7 @@ const Dashboard = () => {
       <style>{`
         .dashboard-grid {
           display: grid;
-          grid-template-columns: 1.6fr 1fr;
+          grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
           gap: 1.5rem;
         }
 
@@ -342,13 +430,13 @@ const Dashboard = () => {
         }
 
         .blood-group-tag {
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(120, 120, 120, 0.08);
           border: 1px solid var(--border);
           border-radius: 4px;
           padding: 0.15rem 0.4rem;
           font-family: var(--font-sans);
           font-weight: 700;
-          color: var(--primary);
+          color: var(--text-primary);
         }
 
         .urgency-dot {
@@ -362,49 +450,185 @@ const Dashboard = () => {
         .urgency-dot.medium { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
         .urgency-dot.low { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
 
-        .progress-bar-bg {
-          height: 8px;
-          background: var(--progress-bg, rgba(255, 255, 255, 0.04));
-          border-radius: 999px;
-          overflow: hidden;
+        .roles-breakdown-content {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
         }
 
-        .progress-bar-fill {
-          height: 100%;
-          border-radius: 999px;
-          transition: width 0.8s ease-out;
+        .donut-chart-container {
+          position: relative;
+          width: 120px;
+          height: 120px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        .progress-donor {
-          background: linear-gradient(90deg, var(--primary) 0%, #ff4d6d 100%);
+        .donut-chart-svg {
+          transform: rotate(0deg);
+          transition: transform 0.5s ease;
         }
 
-        .progress-seeker {
-          background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+        .donut-segment {
+          transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .role-label {
-          font-size: 0.875rem;
-          color: var(--text-secondary);
+        .donut-center-text {
+          position: absolute;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
         }
 
-        .role-percentage {
-          font-size: 0.875rem;
+        .donut-count {
+          font-size: 1.75rem;
           font-weight: 700;
+          font-family: var(--font-heading);
+          color: var(--text-primary);
+          line-height: 1;
+        }
+
+        .donut-label {
+          font-size: 0.75rem;
+          color: var(--text-secondary);
+          margin-top: 2px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .roles-legend-container {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          flex-grow: 1;
+        }
+
+        .legend-item {
+          padding: 0.5rem 0.75rem;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.01);
+          border: 1px solid rgba(255, 255, 255, 0.02);
+          transition: all 0.25s ease;
+        }
+
+        .legend-item:hover {
+          background: rgba(255, 255, 255, 0.03);
+          border-color: rgba(255, 255, 255, 0.06);
+          transform: translateX(4px);
+        }
+
+        .legend-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 4px;
+        }
+
+        .legend-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+
+        .donor-legend .legend-dot {
+          background: var(--primary);
+          box-shadow: 0 0 6px var(--primary);
+        }
+
+        .seeker-legend .legend-dot {
+          background: #3b82f6;
+          box-shadow: 0 0 6px #3b82f6;
+        }
+
+        .legend-name {
+          font-size: 0.85rem;
+          font-weight: 600;
           color: var(--text-primary);
         }
 
+        .legend-val {
+          font-size: 0.85rem;
+          font-weight: 700;
+          margin-left: auto;
+          color: var(--text-primary);
+        }
+
+        .legend-sub-stats {
+          display: flex;
+          gap: 6px;
+          padding-left: 14px;
+          font-size: 0.75rem;
+          color: var(--text-muted);
+        }
+
+        .sub-stat.active {
+          color: var(--success);
+        }
+
+        .sub-stat.suspended {
+          color: var(--danger);
+        }
+
+        .sub-stat.divider {
+          color: rgba(255, 255, 255, 0.1);
+        }
+
+        html.light-theme .legend-item {
+          background: rgba(0, 0, 0, 0.01);
+          border-color: rgba(0, 0, 0, 0.04);
+        }
+
+        html.light-theme .legend-item:hover {
+          background: rgba(0, 0, 0, 0.02);
+          border-color: rgba(0, 0, 0, 0.08);
+        }
+        
+        html.light-theme .sub-stat.divider {
+          color: rgba(0, 0, 0, 0.1);
+        }
+
         .quick-actions-box {
-          background: var(--quick-box-bg, rgba(255, 255, 255, 0.02));
-          border: 1px solid var(--border);
-          border-radius: 12px;
+          background: linear-gradient(135deg, rgba(197, 17, 46, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+          border: 1px solid rgba(197, 17, 46, 0.15);
+          border-radius: 14px;
           padding: 1.25rem;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .quick-actions-box::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(197, 17, 46, 0.08) 0%, transparent 60%);
+          pointer-events: none;
+        }
+
+        html.light-theme .quick-actions-box {
+          background: linear-gradient(135deg, rgba(197, 17, 46, 0.04) 0%, rgba(0, 0, 0, 0.01) 100%);
+          border-color: rgba(197, 17, 46, 0.12);
         }
 
         .quick-headline {
           font-size: 0.9rem;
           color: var(--text-primary);
           font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .quick-headline svg {
+          color: var(--primary);
         }
 
         .quick-description {
@@ -417,42 +641,229 @@ const Dashboard = () => {
           width: 100%;
           font-size: 0.85rem;
           padding: 0.6rem;
+          box-shadow: 0 4px 10px rgba(197, 17, 46, 0.15);
+        }
+        
+        .btn-full-width:hover {
+          box-shadow: 0 6px 14px rgba(197, 17, 46, 0.3);
         }
 
-        /* SVG Trend Chart Styling */
+        /* Recharts Analytics Grid Styling */
+        .analytics-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.5rem;
+        }
+
+        @media (max-width: 992px) {
+          .analytics-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
         .chart-card {
           padding: 1.5rem;
+          display: flex;
+          flex-direction: column;
         }
 
-        .trend-chart-svg {
-          width: 100%;
-          height: auto;
-          overflow: visible;
+        .page-subtitle {
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          line-height: 1.4;
         }
 
-        .chart-axis-label {
-          fill: var(--text-secondary);
-          font-size: 0.7rem;
-          font-weight: 500;
-          font-family: var(--font-sans);
-          opacity: 0.85;
+        /* Bottom Grid: Table + System Activity Log Stack */
+        .dashboard-bottom-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+          gap: 1.5rem;
         }
 
-        .chart-dot {
-          fill: #ffffff;
-          stroke: var(--primary);
-          stroke-width: 2.5px;
-          cursor: pointer;
-          transition: transform 0.2s ease, r 0.2s ease;
-        }
-
-        .chart-dot:hover {
-          r: 7px;
-          transform-origin: center;
+        @media (max-width: 1200px) {
+          .dashboard-bottom-grid {
+            grid-template-columns: 1fr;
+          }
         }
 
         .dashboard-requests-card-full {
           padding: 1.5rem;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .dashboard-requests-card-full .custom-table {
+          font-size: 0.8rem;
+        }
+
+        .dashboard-requests-card-full .custom-table th {
+          padding: 0.6rem 0.8rem;
+          font-size: 0.78rem;
+        }
+
+        .dashboard-requests-card-full .custom-table td {
+          padding: 0.6rem 0.8rem;
+          font-size: 0.78rem;
+        }
+
+        /* Activity Timeline Styling */
+        .activity-timeline-card {
+          padding: 1.5rem;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .timeline-container {
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          padding-left: 14px;
+          margin-top: 0.5rem;
+        }
+
+        .timeline-container::before {
+          content: '';
+          position: absolute;
+          top: 8px;
+          bottom: 8px;
+          left: 4px;
+          width: 2px;
+          background: var(--border);
+        }
+
+        .timeline-item {
+          display: flex;
+          position: relative;
+          padding-bottom: 1.5rem;
+        }
+
+        .timeline-item:last-child {
+          padding-bottom: 0;
+        }
+
+        .timeline-badge {
+          position: absolute;
+          left: -14px;
+          top: 6px;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: var(--border);
+          border: 2px solid var(--card-bg);
+          z-index: 2;
+        }
+
+        .timeline-badge.danger { background: var(--danger); }
+        .timeline-badge.success { background: var(--success); }
+        .timeline-badge.primary { background: var(--primary); }
+
+        .timeline-content {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          padding-left: 10px;
+        }
+
+        .timeline-text {
+          font-size: 0.78rem;
+          color: var(--text-primary);
+          line-height: 1.3;
+        }
+
+        .timeline-text strong {
+          font-weight: 700;
+        }
+
+        .timeline-time {
+          font-size: 0.68rem;
+          color: var(--text-secondary);
+        }
+
+        /* Non-hoverable Cards Override */
+        .chart-card,
+        .dashboard-requests-card-full,
+        .activity-timeline-card {
+          cursor: default;
+        }
+        
+        .chart-card:hover,
+        .dashboard-requests-card-full:hover,
+        .activity-timeline-card:hover {
+          transform: none !important;
+          box-shadow: var(--shadow-lg) !important;
+          border-color: var(--glass-border) !important;
+        }
+
+        /* Recharts custom legend customization */
+        .recharts-default-legend {
+          display: flex;
+          justify-content: center;
+          gap: 12px;
+          margin-top: 10px !important;
+        }
+
+        .recharts-legend-item-text {
+          color: var(--text-secondary) !important;
+          font-weight: 600;
+        }
+
+        /* Dashboard Right Column Stack Layout */
+        .dashboard-right-column {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .summary-card-compact {
+          padding: 1.25rem;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .roles-breakdown-content-compact {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+        }
+
+        .donut-chart-container-compact {
+          position: relative;
+          width: 84px;
+          height: 84px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .donut-center-text-compact {
+          position: absolute;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          line-height: 1.1;
+        }
+
+        .donut-count-compact {
+          font-size: 1.3rem;
+          font-weight: 800;
+          color: var(--text-primary);
+        }
+
+        .donut-label-compact {
+          font-size: 0.6rem;
+          font-weight: 700;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .roles-legend-container-compact {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          flex-grow: 1;
         }
 
         @media (max-width: 1200px) {

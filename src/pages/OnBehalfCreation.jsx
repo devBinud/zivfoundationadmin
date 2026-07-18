@@ -16,6 +16,46 @@ const locationData = {
   ]
 };
 
+const checkPasswordStrength = (pwd) => {
+  if (!pwd) return { score: 0, label: 'Empty', color: '#6b7280', textClass: 'text-muted' };
+  
+  let score = 0;
+  const hasMinLength = pwd.length >= 8;
+  const hasNumber = /[0-9]/.test(pwd);
+  const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+  const hasUpperLower = /[A-Z]/.test(pwd) && /[a-z]/.test(pwd);
+
+  if (hasMinLength) score += 1;
+  if (hasNumber) score += 1;
+  if (hasSpecial) score += 1;
+  if (hasUpperLower) score += 1;
+
+  let label = 'Weak';
+  let color = '#ef4444'; // Red
+  let textClass = 'text-danger';
+
+  if (score >= 4) {
+    label = 'Strong';
+    color = '#10b981'; // Green
+    textClass = 'text-success';
+  } else if (score >= 2) {
+    label = 'Medium';
+    color = '#f59e0b'; // Amber
+    textClass = 'text-warning';
+  }
+
+  return {
+    score,
+    label,
+    color,
+    textClass,
+    hasMinLength,
+    hasNumber,
+    hasSpecial,
+    hasUpperLower
+  };
+};
+
 const OnBehalfCreation = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -172,6 +212,21 @@ const OnBehalfCreation = () => {
           setShowValidation(true);
           return;
         }
+
+        const today = new Date();
+        const dobDate = new Date(userForm.dob);
+        if (dobDate > today) {
+          setError('Date of Birth cannot be a future date.');
+          setShowValidation(true);
+          return;
+        }
+
+        const pwdStrength = checkPasswordStrength(userForm.password);
+        if (pwdStrength.score < 2) {
+          setError('Please enter a stronger password (at least Medium strength).');
+          setShowValidation(true);
+          return;
+        }
       }
     } else if (step === 3) {
       // Step 3: Personal Details & Address (donor) / Location details (requestor)
@@ -181,6 +236,31 @@ const OnBehalfCreation = () => {
           setShowValidation(true);
           return;
         }
+        
+        const today = new Date();
+        const dobDate = new Date(userForm.dob);
+        if (dobDate > today) {
+          setError('Date of Birth cannot be a future date.');
+          setShowValidation(true);
+          return;
+        }
+        
+        let age = today.getFullYear() - dobDate.getFullYear();
+        const m = today.getMonth() - dobDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+          age--;
+        }
+        if (age < 18) {
+          setError('Donor must be at least 18 years old to donate blood.');
+          setShowValidation(true);
+          return;
+        }
+        if (age > 100) {
+          setError('Please enter a valid Date of Birth.');
+          setShowValidation(true);
+          return;
+        }
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(userForm.email)) {
           setError('Please enter a valid email address.');
@@ -503,6 +583,87 @@ const OnBehalfCreation = () => {
                         placeholder="Enter password"
                         required
                       />
+                      {userForm.password && (
+                        <div style={{ marginTop: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Password Strength:</span>
+                            <span style={{
+                              fontSize: '0.75rem',
+                              fontWeight: '700',
+                              color: checkPasswordStrength(userForm.password).color
+                            }}>
+                              {checkPasswordStrength(userForm.password).label}
+                            </span>
+                          </div>
+                          {/* Progress bar */}
+                          <div style={{
+                            height: '4px',
+                            background: 'var(--border)',
+                            borderRadius: '2px',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            gap: '2px'
+                          }}>
+                            <div style={{
+                              flex: 1,
+                              height: '100%',
+                              background: checkPasswordStrength(userForm.password).score >= 1 ? checkPasswordStrength(userForm.password).color : 'transparent',
+                              transition: 'background 0.2s ease'
+                            }} />
+                            <div style={{
+                              flex: 1,
+                              height: '100%',
+                              background: checkPasswordStrength(userForm.password).score >= 2 ? checkPasswordStrength(userForm.password).color : 'transparent',
+                              transition: 'background 0.2s ease'
+                            }} />
+                            <div style={{
+                              flex: 1,
+                              height: '100%',
+                              background: checkPasswordStrength(userForm.password).score >= 4 ? checkPasswordStrength(userForm.password).color : 'transparent',
+                              transition: 'background 0.2s ease'
+                            }} />
+                          </div>
+                          {/* Requirements checklist */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
+                            <span style={{
+                              fontSize: '0.7rem',
+                              color: checkPasswordStrength(userForm.password).hasMinLength ? 'var(--success)' : 'var(--text-muted)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}>
+                              {checkPasswordStrength(userForm.password).hasMinLength ? '✓' : '○'} Min 8 chars
+                            </span>
+                            <span style={{
+                              fontSize: '0.7rem',
+                              color: checkPasswordStrength(userForm.password).hasUpperLower ? 'var(--success)' : 'var(--text-muted)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}>
+                              {checkPasswordStrength(userForm.password).hasUpperLower ? '✓' : '○'} Upper & Lower
+                            </span>
+                            <span style={{
+                              fontSize: '0.7rem',
+                              color: checkPasswordStrength(userForm.password).hasNumber ? 'var(--success)' : 'var(--text-muted)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}>
+                              {checkPasswordStrength(userForm.password).hasNumber ? '✓' : '○'} Number
+                            </span>
+                            <span style={{
+                              fontSize: '0.7rem',
+                              color: checkPasswordStrength(userForm.password).hasSpecial ? 'var(--success)' : 'var(--text-muted)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}>
+                              {checkPasswordStrength(userForm.password).hasSpecial ? '✓' : '○'} Special
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -520,6 +681,7 @@ const OnBehalfCreation = () => {
                       <input
                         type="date"
                         name="dob"
+                        max={new Date().toISOString().split('T')[0]}
                         className={`form-control${showValidation && !userForm.dob ? ' is-invalid' : ''}`}
                         value={userForm.dob}
                         onChange={handleUserChange}
@@ -593,6 +755,7 @@ const OnBehalfCreation = () => {
                       <input
                         type="date"
                         name="dob"
+                        max={new Date().toISOString().split('T')[0]}
                         className={`form-control${showValidation && !userForm.dob ? ' is-invalid' : ''}`}
                         value={userForm.dob}
                         onChange={handleUserChange}
