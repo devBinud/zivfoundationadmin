@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import loginBg from '../assets/bg/login_bg.png';
+import logoZf from '../assets/logo_zf.png';
 
 const Login = () => {
   const { login, isAuthenticated, error: authError } = useAuth();
@@ -48,6 +49,7 @@ const Login = () => {
       
       <div className="light-login-card login-card animate-fade">
         <div className="login-header">
+          <img src={logoZf} alt="Ziv Foundation Logo" className="login-logo" />
           <h2>Ziv Foundation</h2>
           <p>Secure Administrator Access Portal</p>
         </div>
@@ -58,7 +60,7 @@ const Login = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <input
@@ -66,7 +68,8 @@ const Login = () => {
               className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. admin@zivfoundation.org"
+              placeholder="Enter email address"
+              autoComplete="off"
               required
             />
           </div>
@@ -80,6 +83,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="new-password"
                 required
               />
               <button
@@ -114,11 +118,6 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="credentials-tip">
-          <span className="tip-badge">TEST ACCOUNT</span>
-          <p>Email: <code>admin@zivfoundation.org</code></p>
-          <p>Password: <code>admin123</code></p>
-        </div>
       </div>
 
       <style>{`
@@ -155,6 +154,14 @@ const Login = () => {
           border: 1px solid #e5e7eb;
           border-radius: 16px;
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        .login-logo {
+          height: 80px;
+          width: auto;
+          margin: 0 auto 1.25rem auto;
+          display: block;
+          object-fit: contain;
         }
 
         .login-header {
